@@ -1,0 +1,16 @@
+# Netlify configuration for Prevod
+
+[build]
+  # index.html sits at the project root; no build step needed for the static site.
+  publish = "."
+  functions = "netlify/functions"
+
+[functions]
+  # Node runtime for the proxy functions
+  node_bundler = "esbuild"
+
+# Treat WAV uploads to the STT function as binary so the body arrives base64-encoded.
+[[headers]]
+  for = "/.netlify/functions/azure-stt"
+  [headers.values]
+    Content-Type = "audio/wav"

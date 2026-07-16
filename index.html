@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="sl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#2563eb">
+<title>Prevod</title>
+<link rel="icon" href="favicon-32.png">
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<style>
+:root{
+  --bg:#f4f7fc; --surface:#ffffff; --ink:#0d1526; --muted:#5f6b7f; --faint:#8b96a8;
+  --line:#e4ebf5; --line-soft:#eef3fa;
+  --blue:#2563eb; --blue-deep:#1d4ed8; --blue-soft:#eef4ff;
+  --shadow:0 1px 2px rgba(16,32,64,.04), 0 8px 24px rgba(16,32,64,.06);
+  --radius:18px;
+  --zh:#b45309; --zh-bg:#fdf3e6;
+  --en:#7c3aed; --en-bg:#f1ecfe;
+  --fr:#db2777; --fr-bg:#fdebf4;
+  --sl:#0e7490; --sl-bg:#e6f4f9;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg); color:var(--ink);
+  font:15px/1.55 -apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI","PingFang SC","Hiragino Sans GB",system-ui,sans-serif;
+  padding:0 16px calc(40px + env(safe-area-inset-bottom));
+  max-width:640px; margin:0 auto;
+  -webkit-font-smoothing:antialiased;
+}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
+textarea{font:inherit;color:inherit}
+
+/* ---------- header ---------- */
+header{display:flex;align-items:center;justify-content:space-between;padding:22px 2px 16px}
+.brand{display:flex;align-items:center;gap:9px;font-size:17px;font-weight:640;letter-spacing:-.01em}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--blue);flex:none}
+.back{font-size:13px;color:var(--muted);text-decoration:none;padding:6px 11px;border:1px solid var(--line);border-radius:999px;background:var(--surface)}
+.back:active{background:var(--blue-soft)}
+
+/* ---------- segmented source picker ---------- */
+.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;background:var(--surface);
+  border:1px solid var(--line);border-radius:14px;padding:4px;box-shadow:var(--shadow);margin-bottom:8px}
+.seg button{padding:10px 4px;border-radius:10px;font-size:14px;font-weight:560;color:var(--muted);transition:.16s}
+.seg button[aria-selected="true"]{background:var(--blue);color:#fff;box-shadow:0 2px 8px rgba(37,99,235,.28)}
+.seg button:not([aria-selected="true"]):active{background:var(--blue-soft)}
+.route{font-size:12.5px;color:var(--faint);text-align:center;margin:0 0 16px;letter-spacing:.01em}
+.route b{color:var(--muted);font-weight:560}
+
+/* ---------- input card ---------- */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+.input{padding:16px 16px 12px;margin-bottom:14px}
+#src{width:100%;border:0;outline:0;resize:none;background:none;font-size:17px;line-height:1.5;min-height:52px;padding:0}
+#src::placeholder{color:var(--faint)}
+.tools{display:flex;align-items:center;gap:10px;padding-top:12px;border-top:1px solid var(--line-soft);margin-top:10px}
+.mic{width:46px;height:46px;border-radius:50%;background:var(--blue);color:#fff;display:grid;place-items:center;
+  flex:none;box-shadow:0 3px 12px rgba(37,99,235,.32);transition:transform .12s,background .12s;touch-action:none}
+.mic svg{width:20px;height:20px;fill:currentColor}
+.mic.rec{background:#e11d48;box-shadow:0 0 0 8px rgba(225,29,72,.14);animation:pulse 1.3s ease-in-out infinite}
+@keyframes pulse{50%{transform:scale(.93)}}
+.hint{flex:1;font-size:12.5px;color:var(--faint);min-width:0}
+.hint.err{color:#e11d48}
+.go{padding:11px 20px;border-radius:999px;background:var(--ink);color:#fff;font-size:14px;font-weight:600;flex:none;transition:.15s}
+.go:disabled{opacity:.32}
+.go:not(:disabled):active{transform:scale(.96)}
+.clear{font-size:12.5px;color:var(--faint);padding:6px 8px;flex:none}
+
+/* ---------- results ---------- */
+.out{padding:15px 16px;margin-bottom:12px;border-left:3px solid var(--ac,var(--line))}
+.out header{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 0 8px}
+.tag{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ac);
+  background:var(--ac-bg);padding:4px 9px;border-radius:6px}
+.acts{display:flex;gap:2px}
+.icon{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;color:var(--muted);transition:.14s}
+.icon svg{width:17px;height:17px;fill:currentColor}
+.icon:active{background:var(--blue-soft);color:var(--blue)}
+.icon.on{color:var(--blue)}
+.txt{font-size:19px;line-height:1.5;letter-spacing:-.005em;word-break:break-word}
+.out.wait .txt{color:var(--faint)}
+.skel{height:14px;border-radius:7px;background:linear-gradient(90deg,var(--line-soft),var(--bg),var(--line-soft));
+  background-size:220% 100%;animation:sh 1.1s linear infinite;margin:6px 0}
+.skel.s2{width:62%}
+@keyframes sh{to{background-position:-220% 0}}
+
+/* ---------- history ---------- */
+.hsec{margin-top:26px}
+.htitle{display:flex;align-items:center;justify-content:space-between;padding:0 4px 10px}
+.htitle span{font-size:12px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--faint)}
+.hitem{padding:13px 15px;margin-bottom:8px;border-radius:14px;background:var(--surface);
+  border:1px solid var(--line);cursor:pointer;transition:.14s}
+.hitem:active{border-color:var(--blue);background:var(--blue-soft)}
+.hsrc{font-size:14px;font-weight:560;margin-bottom:3px}
+.hout{font-size:13px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.empty{text-align:center;color:var(--faint);font-size:13px;padding:22px 0}
+
+/* ---------- gate / login ---------- */
+#gate{position:fixed;inset:0;background:var(--bg);display:grid;place-items:center;padding:24px;z-index:50}
+.gbox{width:100%;max-width:320px;text-align:center}
+.gbox h1{font-size:19px;margin:0 0 8px;letter-spacing:-.01em}
+.gbox p{color:var(--muted);font-size:14px;margin:0 0 20px}
+#gform{display:flex;flex-direction:column;gap:9px;text-align:left}
+#gform input{padding:13px 15px;border:1px solid var(--line);border-radius:12px;background:var(--surface);
+  font-size:16px;outline:0;transition:border-color .15s}
+#gform input:focus{border-color:var(--blue)}
+.gbtn{padding:13px 26px;border-radius:999px;background:var(--blue);color:#fff;
+  font-weight:600;font-size:15px;text-align:center;margin-top:4px}
+.gbtn:disabled{opacity:.5}
+.glink{font-size:13px;color:var(--muted);padding:8px;text-align:center}
+.gerr{font-size:13px;color:#e11d48;padding:2px 4px;line-height:1.4}
+.gok{font-size:13px;color:var(--sl);padding:2px 4px;line-height:1.4}
+.hide{display:none!important}
+</style>
+</head>
+<body>
+
+<div id="gate">
+  <div class="gbox">
+    <div class="dot" style="margin:0 auto 14px"></div>
+    <h1 id="gt">Prevod</h1>
+    <p id="gp">Trenutek prosim…</p>
+    <form id="gform" class="hide">
+      <input id="gmail" type="email" placeholder="E-pošta" autocomplete="email" required>
+      <input id="gpass" type="password" placeholder="Geslo" autocomplete="current-password" required minlength="6">
+      <div class="gerr hide" id="gerr"></div>
+      <button class="gbtn" id="gsub" type="submit">Prijava</button>
+      <button class="glink" id="gtog" type="button">Nimaš računa? Registriraj se</button>
+    </form>
+  </div>
+</div>
+
+<header>
+  <div class="brand"><span class="dot"></span>Prevod</div>
+  <button class="back hide" id="out">Odjava</button>
+</header>
+
+<div class="seg" role="tablist" id="seg"></div>
+<p class="route" id="route"></p>
+
+<div class="card input">
+  <textarea id="src" rows="1" placeholder="Govori ali natipkaj…" autocomplete="off" spellcheck="false"></textarea>
+  <div class="tools">
+    <button class="mic" id="mic" aria-label="Hold to speak">
+      <svg viewBox="0 0 24 24"><path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3Z"/><path d="M18 12a6 6 0 0 1-12 0H4a8 8 0 0 0 7 7.94V22h2v-2.06A8 8 0 0 0 20 12h-2Z"/></svg>
+    </button>
+    <div class="hint" id="hint">Pridrži za govor</div>
+    <button class="clear hide" id="clr">Zbriši</button>
+    <button class="go" id="go" disabled>Prevedi</button>
+  </div>
+</div>
+
+<div id="outs"></div>
+
+<section class="hsec">
+  <div class="htitle"><span>Zgodovina</span><button class="clear hide" id="hclr">Počisti</button></div>
+  <div id="hist"></div>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+/* ============================================================
+   Prevod — speak/type in zh|en|fr, get two translations back.
+   Reuses the Govori backend: Supabase auth, azure-stt, azure-tts,
+   anthropic (module 'tr'). Same origin ⇒ same stored session.
+   ============================================================ */
+
+const SUPABASE_URL = "https://oexapgbnhavuzpbripqg.supabase.co";
+const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9leGFwZ2JuaGF2dXpwYnJpcHFnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMzNjU0OTMsImV4cCI6MjA5ODk0MTQ5M30.jC_SePTaEgLGAlM8oR7RLKmy5ryDEKUkqlXyvUthZeM";
+
+// Azure voice + STT locale per language. `key` doubles as the CSS accent name.
+const LANGS = {
+  zh: { name:'中文',        stt:'zh-CN', voice:'zh-CN-XiaoxiaoNeural' },
+  en: { name:'English',     stt:'en-US', voice:'en-US-AvaNeural' },
+  fr: { name:'Français',    stt:'fr-FR', voice:'fr-FR-DeniseNeural' },
+  sl: { name:'Slovenščina', stt:'sl-SI', voice:'sl-SI-PetraNeural' },
+};
+// Speaking zh or en gets you the two languages you're learning; speaking fr
+// (the one you'd hear in the wild) gets you back into a language you know.
+const ROUTES = { zh:['sl','fr'], en:['sl','fr'], fr:['zh','en'] };
+
+let sb = null, srcLang = 'zh', busy = false;
+
+/* ---------- auth ---------- */
+async function token(){
+  if(!sb) return null;
+  const { data } = await sb.auth.getSession();
+  return data && data.session ? data.session.access_token : null;
+}
+async function authedFetch(url, opts){
+  opts = opts || {};
+  const t = await token();
+  if(!t){ showLogin('Seja je potekla', 'Prijavi se znova.'); throw new Error('no session'); }
+  opts.headers = Object.assign({}, opts.headers || {}, { Authorization: 'Bearer ' + t });
+  const res = await fetch(url, opts);
+  if(res.status === 401){ showLogin('Seja je potekla', 'Prijavi se znova.'); throw new Error('401'); }
+  return res;
+}
+function showLogin(title, msg){
+  document.getElementById('gate').classList.remove('hide');
+  document.getElementById('gt').textContent = title || 'Prevod';
+  document.getElementById('gp').textContent = msg || 'Prijavi se za nadaljevanje.';
+  document.getElementById('gform').classList.remove('hide');
+  document.getElementById('out').classList.add('hide');
+}
+function enterApp(){
+  document.getElementById('gate').classList.add('hide');
+  document.getElementById('out').classList.remove('hide');
+}
+function gerr(msg){
+  const e = document.getElementById('gerr');
+  e.textContent = msg;
+  e.className = 'gerr';
+}
+function gnote(msg){
+  const e = document.getElementById('gerr');
+  e.textContent = msg;
+  e.className = 'gok';
+}
+
+// Sign-in / sign-up against the same Supabase project Govori uses, so an
+// existing Govori account works here with no extra setup.
+let signupMode = false;
+async function submitAuth(e){
+  e.preventDefault();
+  const email = document.getElementById('gmail').value.trim();
+  const pass  = document.getElementById('gpass').value;
+  const btn   = document.getElementById('gsub');
+  if(!email || pass.length < 6){ gerr('Vpiši e-pošto in geslo (vsaj 6 znakov).'); return; }
+  btn.disabled = true;
+  btn.textContent = signupMode ? 'Registriram…' : 'Prijavljam…';
+  try{
+    const { data, error } = signupMode
+      ? await sb.auth.signUp({ email, password: pass })
+      : await sb.auth.signInWithPassword({ email, password: pass });
+    if(error){ gerr(error.message); return; }
+    // With e-mail confirmation on, signUp returns a user but no session yet.
+    if(data && data.session){ document.getElementById('gerr').classList.add('hide'); enterApp(); }
+    else gnote('Preveri e-pošto in potrdi registracijo, nato se prijavi.');
+  }catch(_){
+    gerr('Prijava ni uspela. Poskusi znova.');
+  }finally{
+    btn.disabled = false;
+    btn.textContent = signupMode ? 'Registracija' : 'Prijava';
+  }
+}
+function toggleMode(){
+  signupMode = !signupMode;
+  document.getElementById('gsub').textContent = signupMode ? 'Registracija' : 'Prijava';
+  document.getElementById('gtog').textContent = signupMode ? 'Imaš račun? Prijava' : 'Nimaš računa? Registriraj se';
+  document.getElementById('gpass').autocomplete = signupMode ? 'new-password' : 'current-password';
+  document.getElementById('gerr').classList.add('hide');
+}
+async function logout(){
+  try{ await sb.auth.signOut(); }catch(_){}
+  showLogin('Prevod', 'Prijavi se za nadaljevanje.');
+}
+
+/* ---------- source picker ---------- */
+function renderSeg(){
+  const seg = document.getElementById('seg');
+  seg.innerHTML = '';
+  ['zh','en','fr'].forEach(k => {
+    const b = document.createElement('button');
+    b.textContent = LANGS[k].name;
+    b.setAttribute('role','tab');
+    b.setAttribute('aria-selected', String(k === srcLang));
+    b.onclick = () => { srcLang = k; renderSeg(); renderRoute(); resetOuts(); save(); };
+    seg.appendChild(b);
+  });
+}
+function renderRoute(){
+  const [a,b] = ROUTES[srcLang];
+  document.getElementById('route').innerHTML =
+    `Govorim <b>${LANGS[srcLang].name}</b> → <b>${LANGS[a].name}</b> · <b>${LANGS[b].name}</b>`;
+}
+
+/* ---------- output cards ---------- */
+function resetOuts(){ renderOuts(null); }
+function renderOuts(data){
+  const wrap = document.getElementById('outs');
+  wrap.innerHTML = '';
+  if(!data) return;
+  ROUTES[srcLang].forEach((k, i) => {
+    const text = data[i];
+    const el = document.createElement('div');
+    el.className = 'card out' + (text ? '' : ' wait');
+    el.style.setProperty('--ac', `var(--${k})`);
+    el.style.setProperty('--ac-bg', `var(--${k}-bg)`);
+    el.innerHTML =
+      `<header><span class="tag">${LANGS[k].name}</span><div class="acts"></div></header>` +
+      (text ? `<div class="txt"></div>` : `<div class="skel"></div><div class="skel s2"></div>`);
+    if(text){
+      el.querySelector('.txt').textContent = text;
+      const acts = el.querySelector('.acts');
+      const sp = iconBtn('speak', () => speak(text, k, sp));
+      acts.appendChild(sp);
+      acts.appendChild(iconBtn('copy', function(){ copy(text, this); }));
+    }
+    wrap.appendChild(el);
+  });
+}
+const ICONS = {
+  speak:'<path d="M4 9v6h4l5 5V4L8 9H4Zm12.5 3a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4Zm-2.5-8.7v2.1a7 7 0 0 1 0 13.2v2.1a9 9 0 0 0 0-17.4Z"/>',
+  copy:'<path d="M16 1H4a2 2 0 0 0-2 2v14h2V3h12V1Zm3 4H8a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2Zm0 16H8V7h11v14Z"/>',
+  ok:'<path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2Z"/>',
+};
+function iconBtn(kind, fn){
+  const b = document.createElement('button');
+  b.className = 'icon';
+  b.innerHTML = `<svg viewBox="0 0 24 24">${ICONS[kind]}</svg>`;
+  b.onclick = fn;
+  return b;
+}
+
+/* ---------- Azure TTS ---------- */
+let audio = null;
+async function speak(text, lang, btn){
+  if(audio){ audio.pause(); audio = null; }
+  document.querySelectorAll('.icon.on').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  const v = LANGS[lang].voice;
+  const ssml = `<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="${LANGS[lang].stt}">`
+             + `<voice name="${v}">${esc(text)}</voice></speak>`;
+  try{
+    const res = await authedFetch('/.netlify/functions/azure-tts', {
+      method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ ssml })
+    });
+    if(!res.ok) throw new Error('TTS ' + res.status);
+    const blob = await res.blob();
+    audio = new Audio(URL.createObjectURL(blob));
+    audio.onended = () => btn.classList.remove('on');
+    audio.play();
+  }catch(e){ btn.classList.remove('on'); }
+}
+function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function copy(text, btn){
+  navigator.clipboard.writeText(text).then(() => {
+    const old = btn.innerHTML;
+    btn.innerHTML = `<svg viewBox="0 0 24 24">${ICONS.ok}</svg>`;
+    btn.classList.add('on');
+    setTimeout(() => { btn.innerHTML = old; btn.classList.remove('on'); }, 1200);
+  });
+}
+
+/* ---------- translation ---------- */
+async function translate(){
+  const text = document.getElementById('src').value.trim();
+  if(!text || busy) return;
+  busy = true;
+  setBusy(true);
+  renderOuts(['','']);   // skeletons
+
+  const [a, b] = ROUTES[srcLang];
+  const sys =
+    `You translate short spoken utterances. Produce t1 in ${LANGS[a].name} and t2 in ${LANGS[b].name}.\n` +
+    `- Translate into natural, idiomatic spoken language — what a native actually says, not a word-for-word rendering.\n` +
+    `- Preserve the register and tone of the source: casual stays casual, polite stays polite.\n` +
+    `- The input comes from speech recognition and may contain small errors; translate the obvious intent.\n` +
+    `- Translate only. No explanations, notes, alternatives, or quotation marks around the output.`;
+
+  try{
+    const res = await authedFetch('/.netlify/functions/anthropic', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        _meta:{ module:'tr' },
+        model:'claude-opus-4-8',
+        max_tokens:1000,
+        system: sys,
+        output_config:{
+          effort:'low',
+          format:{
+            type:'json_schema',
+            schema:{
+              type:'object',
+              properties:{ t1:{type:'string'}, t2:{type:'string'} },
+              required:['t1','t2'],
+              additionalProperties:false
+            }
+          }
+        },
+        messages:[{ role:'user', content:text }]
+      })
+    });
+    const d = await res.json();
+    if(!res.ok){
+      const m = d.error === 'quota'
+        ? 'Dnevna kvota je porabljena. Poskusi jutri.'
+        : ('Napaka: ' + (d.error && d.error.message || d.error || res.status));
+      hint(m, true); resetOuts(); return;
+    }
+    const raw = (d.content || []).filter(x => x.type === 'text').map(x => x.text).join('');
+    const out = JSON.parse(raw);
+    renderOuts([out.t1, out.t2]);
+    remember(text, out.t1, out.t2);
+    hint('Pridrži za govor');
+  }catch(e){
+    if(String(e.message) !== '401'){ hint('Prevod ni uspel. Poskusi znova.', true); resetOuts(); }
+  }finally{
+    busy = false; setBusy(false);
+  }
+}
+function setBusy(on){
+  const go = document.getElementById('go');
+  go.disabled = on || !document.getElementById('src').value.trim();
+  go.textContent = on ? 'Prevajam…' : 'Prevedi';
+}
+function hint(msg, err){
+  const h = document.getElementById('hint');
+  h.textContent = msg;
+  h.classList.toggle('err', !!err);
+}
+
+/* ---------- recording → Azure STT ---------- */
+let ctx = null, node = null, source = null, stream = null, pcm = [], rate = 48000, recording = false;
+
+async function startRec(){
+  if(recording || busy) return;
+  try{
+    stream = await navigator.mediaDevices.getUserMedia({ audio:{ channelCount:1, noiseSuppression:true, echoCancellation:true } });
+    ctx = new (window.AudioContext || window.webkitAudioContext)();
+    rate = ctx.sampleRate;
+    source = ctx.createMediaStreamSource(stream);
+    node = ctx.createScriptProcessor(4096, 1, 1);
+    pcm = [];
+    node.onaudioprocess = e => { if(recording) pcm.push(new Float32Array(e.inputBuffer.getChannelData(0))); };
+    source.connect(node); node.connect(ctx.destination);
+    recording = true;
+    document.getElementById('mic').classList.add('rec');
+    hint('Poslušam… spusti za konec');
+  }catch(e){
+    hint('Dovoli dostop do mikrofona.', true);
+    recording = false;
+  }
+}
+async function stopRec(){
+  if(!recording) return;
+  recording = false;
+  document.getElementById('mic').classList.remove('rec');
+  try{ source.disconnect(); node.disconnect(); }catch(_){}
+  try{ stream.getTracks().forEach(t => t.stop()); ctx.close(); }catch(_){}
+
+  let len = 0; pcm.forEach(a => len += a.length);
+  const flat = new Float32Array(len);
+  let off = 0; pcm.forEach(a => { flat.set(a, off); off += a.length; });
+  const wav = encodeWAV(flat, rate, 16000);
+  if(wav.byteLength < 2000){ hint('Prekratko. Pridrži dlje in govori.', true); return; }
+
+  hint('Prepoznavam…');
+  try{
+    const res = await authedFetch('/.netlify/functions/azure-stt?lang=' + LANGS[srcLang].stt, {
+      method:'POST', headers:{'Content-Type':'audio/wav'}, body: new Blob([wav], { type:'audio/wav' })
+    });
+    if(!res.ok) throw new Error('STT ' + res.status);
+    const { text } = await res.json();
+    if(!text){ hint('Nisem razumel. Poskusi znova.', true); return; }
+    const box = document.getElementById('src');
+    box.value = text.trim();
+    onInput();
+    hint('Popravi, če je treba, in prevedi.');
+    translate();
+  }catch(e){
+    if(String(e.message) !== '401') hint('Prepoznava ni uspela.', true);
+  }
+}
+// Downsample to 16 kHz and wrap in a 16-bit PCM WAV header (what Azure STT wants).
+function encodeWAV(samples, inRate, outRate){
+  if(outRate !== inRate){
+    const ratio = inRate / outRate;
+    const n = Math.round(samples.length / ratio);
+    const out = new Float32Array(n);
+    for(let i = 0; i < n; i++) out[i] = samples[Math.floor(i * ratio)];
+    samples = out;
+  }
+  const buf = new ArrayBuffer(44 + samples.length * 2);
+  const v = new DataView(buf);
+  const w = (o, s) => { for(let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
+  w(0,'RIFF'); v.setUint32(4, 36 + samples.length * 2, true); w(8,'WAVE');
+  w(12,'fmt '); v.setUint32(16, 16, true); v.setUint16(20, 1, true);
+  v.setUint16(22, 1, true); v.setUint32(24, outRate, true);
+  v.setUint32(28, outRate * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true);
+  w(36,'data'); v.setUint32(40, samples.length * 2, true);
+  let off = 44;
+  for(let i = 0; i < samples.length; i++){
+    const s = Math.max(-1, Math.min(1, samples[i]));
+    v.setInt16(off, s < 0 ? s * 0x8000 : s * 0x7FFF, true); off += 2;
+  }
+  return buf;
+}
+
+/* ---------- history (local only) ---------- */
+function hist(){ try{ return JSON.parse(localStorage.getItem('prevodHist') || '[]'); }catch(_){ return []; } }
+function remember(src, t1, t2){
+  const list = hist().filter(h => !(h.src === src && h.lang === srcLang));
+  list.unshift({ src, t1, t2, lang: srcLang, at: Date.now() });
+  localStorage.setItem('prevodHist', JSON.stringify(list.slice(0, 40)));
+  renderHist();
+}
+function renderHist(){
+  const list = hist(), wrap = document.getElementById('hist');
+  document.getElementById('hclr').classList.toggle('hide', !list.length);
+  if(!list.length){ wrap.innerHTML = '<div class="empty">Prevodi se shranijo tukaj.</div>'; return; }
+  wrap.innerHTML = '';
+  list.forEach(h => {
+    const el = document.createElement('div');
+    el.className = 'hitem';
+    el.innerHTML = '<div class="hsrc"></div><div class="hout"></div>';
+    el.querySelector('.hsrc').textContent = h.src;
+    el.querySelector('.hout').textContent = h.t1 + ' · ' + h.t2;
+    el.onclick = () => {
+      srcLang = h.lang; renderSeg(); renderRoute(); save();
+      document.getElementById('src').value = h.src; onInput();
+      renderOuts([h.t1, h.t2]);
+      window.scrollTo({ top:0, behavior:'smooth' });
+    };
+    wrap.appendChild(el);
+  });
+}
+
+/* ---------- input wiring ---------- */
+function onInput(){
+  const box = document.getElementById('src');
+  box.style.height = 'auto';
+  box.style.height = Math.max(52, box.scrollHeight) + 'px';
+  const has = !!box.value.trim();
+  document.getElementById('go').disabled = busy || !has;
+  document.getElementById('clr').classList.toggle('hide', !has);
+}
+function save(){ localStorage.setItem('prevodLang', srcLang); }
+
+/* ============================================================
+   init — everything above is defined by now (see CLAUDE.md §8.3:
+   no top-level calls before their definitions).
+   ============================================================ */
+(function init(){
+  const saved = localStorage.getItem('prevodLang');
+  if(saved && ROUTES[saved]) srcLang = saved;
+
+  renderSeg(); renderRoute(); renderHist(); resetOuts();
+
+  const box = document.getElementById('src');
+  box.addEventListener('input', onInput);
+  box.addEventListener('keydown', e => {
+    if((e.metaKey || e.ctrlKey) && e.key === 'Enter'){ e.preventDefault(); translate(); }
+  });
+  document.getElementById('go').onclick = translate;
+  document.getElementById('clr').onclick = () => { box.value = ''; onInput(); resetOuts(); box.focus(); };
+  document.getElementById('hclr').onclick = () => { localStorage.removeItem('prevodHist'); renderHist(); };
+
+  // Hold to speak — same gesture as the Del2 / Osnove mics.
+  const mic = document.getElementById('mic');
+  const down = e => { e.preventDefault(); startRec(); };
+  const up   = e => { e.preventDefault(); stopRec(); };
+  mic.addEventListener('pointerdown', down);
+  mic.addEventListener('pointerup', up);
+  mic.addEventListener('pointercancel', up);
+  mic.addEventListener('pointerleave', e => { if(recording) up(e); });
+
+  document.getElementById('gform').addEventListener('submit', submitAuth);
+  document.getElementById('gtog').onclick = toggleMode;
+  document.getElementById('out').onclick = logout;
+
+  (async () => {
+    if(!window.supabase){
+      document.getElementById('gp').textContent = 'Napaka pri nalaganju. Osveži stran.';
+      return;
+    }
+    sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+    const t = await token();
+    if(t) enterApp();
+    else showLogin('Prevod', 'Prijavi se za nadaljevanje.');
+  })();
+
+  if('serviceWorker' in navigator){
+    window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
+  }
+})();
+</script>
+</body>
+</html>
