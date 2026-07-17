@@ -396,7 +396,6 @@ async function translate(){
     const res = await authedFetch('/.netlify/functions/anthropic', {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({
-        _meta:{ module:'tr' },
         model:'claude-opus-4-8',
         max_tokens:1000,
         system: sys,

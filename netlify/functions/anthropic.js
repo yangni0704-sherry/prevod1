@@ -27,6 +27,11 @@ exports.handler = async (event) => {
   try { payload = JSON.parse(event.body); }
   catch { return { statusCode: 400, body: JSON.stringify({ error: "Body must be JSON" }) }; }
 
+  // Anthropic rejects unknown top-level fields, so anything of ours must come
+  // off before forwarding. Quota here is a single per-user cap and needs no
+  // routing metadata, but cached clients still send `_meta` — strip it anyway.
+  delete payload._meta;
+
   // 2) daily cap
   const q = await checkQuota(userId);
   if (!q.ok) {

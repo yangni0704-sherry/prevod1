@@ -1,7 +1,7 @@
 /* Prevod service worker — makes the app installable and lets the shell open offline.
    IMPORTANT: never cache API traffic (Netlify functions, Supabase, Azure) — those must be live.
    Bump CACHE whenever a SHELL asset changes, or clients keep the old copy. */
-const CACHE = 'prevod-shell-v1';
+const CACHE = 'prevod-shell-v2';
 const SHELL = [
   '/',
   '/index.html',
