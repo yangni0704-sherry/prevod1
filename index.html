@@ -99,7 +99,7 @@ header{display:flex;align-items:center;justify-content:space-between;padding:22p
 #gate{position:fixed;inset:0;background:var(--bg);display:grid;place-items:center;padding:24px;z-index:50}
 .gbox{width:100%;max-width:320px;text-align:center}
 .gbox h1{font-size:19px;margin:0 0 8px;letter-spacing:-.01em}
-.gbox p{color:var(--muted);font-size:14px;margin:0 0 20px}
+.gbox p{color:var(--muted);font-size:14px;margin:0 0 20px;word-break:break-word;line-height:1.45}
 #gform{display:flex;flex-direction:column;gap:9px;text-align:left}
 #gform input{padding:13px 15px;border:1px solid var(--line);border-radius:12px;background:var(--surface);
   font-size:16px;outline:0;transition:border-color .15s}
@@ -187,14 +187,32 @@ async function token(){
   const { data } = await sb.auth.getSession();
   return data && data.session ? data.session.access_token : null;
 }
+// On 401 the old code silently bounced to the login screen, which hid whether
+// the session was missing client-side or the server rejected a real token.
+// Surface the actual cause instead — the two failures need different fixes.
 async function authedFetch(url, opts){
   opts = opts || {};
   const t = await token();
-  if(!t){ showLogin('Seja je potekla', 'Prijavi se znova.'); throw new Error('no session'); }
+  if(!t){
+    showLogin('Ni prijave', 'Seja ni bila shranjena (client). Prijavi se znova.');
+    throw new Error('no session');
+  }
   opts.headers = Object.assign({}, opts.headers || {}, { Authorization: 'Bearer ' + t });
   const res = await fetch(url, opts);
-  if(res.status === 401){ showLogin('Seja je potekla', 'Prijavi se znova.'); throw new Error('401'); }
+  if(res.status === 401){
+    const body = await res.text().catch(() => '');
+    showLogin('Strežnik je zavrnil prijavo (401)', dbg(t, url, body));
+    throw new Error('401');
+  }
   return res;
+}
+// Compact fingerprint of the token + the server's own words, rendered in the UI
+// so it can be read without opening devtools.
+function dbg(t, url, body){
+  let ref = '?';
+  try{ ref = JSON.parse(atob(t.split('.')[1])).iss || '?'; }catch(_){}
+  const fn = String(url).split('/').pop().split('?')[0];
+  return `fn=${fn} · token ${t.length} znakov · iss=${ref} · strežnik: ${body.slice(0,120)}`;
 }
 function showLogin(title, msg){
   document.getElementById('gate').classList.remove('hide');
