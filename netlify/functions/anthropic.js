@@ -15,7 +15,7 @@ exports.handler = async (event) => {
 
   // 1) must be logged in
   const gate = await requireUser(event);
-  if (gate.error) return unauthorized(gate.error);
+  if (gate.error) return unauthorized(gate);
   const userId = gate.user.id;
 
   const key = process.env.ANTHROPIC_API_KEY;

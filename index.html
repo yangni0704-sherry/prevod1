@@ -209,10 +209,24 @@ async function authedFetch(url, opts){
 // Compact fingerprint of the token + the server's own words, rendered in the UI
 // so it can be read without opening devtools.
 function dbg(t, url, body){
-  let ref = '?';
-  try{ ref = JSON.parse(atob(t.split('.')[1])).iss || '?'; }catch(_){}
+  let mine = '?';
+  try{ mine = JSON.parse(atob(t.split('.')[1])).iss || '?'; }catch(_){}
+  mine = String(mine).replace(/^https?:\/\//, '').replace(/\/auth\/v1$/, '');
   const fn = String(url).split('/').pop().split('?')[0];
-  return `fn=${fn} · token ${t.length} znakov · iss=${ref} · strežnik: ${body.slice(0,120)}`;
+  let d = null;
+  try{ d = JSON.parse(body); }catch(_){}
+  const lines = [`fn=${fn}`, `TOKEN projekt: ${mine}`];
+  if(d && d.env){
+    // The whole point: compare the project the token came from against the one
+    // this function is configured to validate against.
+    const srv = String(d.env.url).replace(/^https?:\/\//, '');
+    lines.push(`STREŽNIK url: ${srv}`);
+    lines.push(`STREŽNIK anon: ref=${d.env.anon_ref} len=${d.env.anon_len}${d.env.anon_trimmed ? ' ⚠ PRESLEDEK/NEWLINE' : ''}`);
+    if(d.why) lines.push(`Supabase: ${d.why}`);
+  } else {
+    lines.push(`strežnik: ${body.slice(0, 100)}`);
+  }
+  return lines.join(' · ');
 }
 function showLogin(title, msg){
   document.getElementById('gate').classList.remove('hide');

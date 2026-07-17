@@ -18,7 +18,7 @@ exports.handler = async (event) => {
 
   // Access gate: require a valid Supabase login token before spending the key.
   const gate = await requireUser(event);
-  if (gate.error) return unauthorized(gate.error);
+  if (gate.error) return unauthorized(gate);
 
   const key = process.env.AZURE_SPEECH_KEY;
   const region = process.env.AZURE_SPEECH_REGION || "westeurope";
