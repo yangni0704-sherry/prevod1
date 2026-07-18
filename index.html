@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="sl">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#f5f6f8">
-<title>Prevod</title>
+<title>Translate</title>
 <link rel="icon" href="favicon-32.png">
 <link rel="manifest" href="manifest.json">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -136,21 +136,21 @@ header{display:flex;align-items:center;justify-content:space-between;padding:24p
 <div id="gate">
   <div class="gbox">
     <div class="dot" style="margin:0 auto 14px"></div>
-    <h1 id="gt">Prevod</h1>
-    <p id="gp">Trenutek prosim…</p>
+    <h1 id="gt">Translate</h1>
+    <p id="gp">One moment…</p>
     <form id="gform" class="hide">
-      <input id="gmail" type="email" placeholder="E-pošta" autocomplete="email" required>
-      <input id="gpass" type="password" placeholder="Geslo" autocomplete="current-password" required minlength="6">
+      <input id="gmail" type="email" placeholder="Email" autocomplete="email" required>
+      <input id="gpass" type="password" placeholder="Password" autocomplete="current-password" required minlength="6">
       <div class="gerr hide" id="gerr"></div>
-      <button class="gbtn" id="gsub" type="submit">Prijava</button>
-      <button class="glink" id="gtog" type="button">Nimaš računa? Registriraj se</button>
+      <button class="gbtn" id="gsub" type="submit">Sign in</button>
+      <button class="glink" id="gtog" type="button">No account? Sign up</button>
     </form>
   </div>
 </div>
 
 <header>
-  <div class="brand"><span class="dot"></span>Prevod</div>
-  <button class="back hide" id="out">Odjava</button>
+  <div class="brand"><span class="dot"></span>Translate</div>
+  <button class="back hide" id="out">Sign out</button>
 </header>
 
 <!-- source ⇄ target -->
@@ -158,42 +158,42 @@ header{display:flex;align-items:center;justify-content:space-between;padding:24p
   <label class="langpill" id="pillSrc">
     <span class="langname" id="nameSrc"></span>
     <svg class="chev" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>
-    <select id="selSrc" aria-label="Iz jezika"></select>
+    <select id="selSrc" aria-label="From language"></select>
   </label>
-  <button class="swap" id="swap" aria-label="Zamenjaj jezika">
+  <button class="swap" id="swap" aria-label="Swap languages">
     <svg viewBox="0 0 24 24"><path d="M7 7h11l-3.5-3.5L16 2l6 6-6 6-1.5-1.5L18 9H7V7Zm10 10H6l3.5 3.5L8 22l-6-6 6-6 1.5 1.5L6 15h11v2Z"/></svg>
   </button>
   <label class="langpill" id="pillTgt">
     <span class="langname" id="nameTgt"></span>
     <svg class="chev" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>
-    <select id="selTgt" aria-label="V jezik"></select>
+    <select id="selTgt" aria-label="To language"></select>
   </label>
 </div>
 
 <!-- quick / precise -->
 <div class="modewrap">
   <div class="modebar" id="modebar">
-    <button data-m="hitro" type="button">Hitro</button>
-    <button data-m="natancno" type="button">Natančno</button>
+    <button data-m="hitro" type="button">Quick</button>
+    <button data-m="natancno" type="button">Precise</button>
   </div>
 </div>
 
 <div class="card input">
-  <textarea id="src" rows="1" placeholder="Govori ali natipkaj…" autocomplete="off" spellcheck="false"></textarea>
+  <textarea id="src" rows="1" placeholder="Speak or type…" autocomplete="off" spellcheck="false"></textarea>
   <div class="tools">
-    <button class="mic" id="mic" aria-label="Pridrži za govor">
+    <button class="mic" id="mic" aria-label="Hold to speak">
       <svg viewBox="0 0 24 24"><path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3Z"/><path d="M18 12a6 6 0 0 1-12 0H4a8 8 0 0 0 7 7.94V22h2v-2.06A8 8 0 0 0 20 12h-2Z"/></svg>
     </button>
-    <div class="hint" id="hint">Pridrži za govor</div>
-    <button class="clear hide" id="clr">Zbriši</button>
-    <button class="go" id="go" disabled>Prevedi</button>
+    <div class="hint" id="hint">Hold to speak</div>
+    <button class="clear hide" id="clr">Clear</button>
+    <button class="go" id="go" disabled>Translate</button>
   </div>
 </div>
 
 <div id="outs"></div>
 
 <section class="hsec">
-  <div class="htitle"><span>Zgodovina</span><button class="clear hide" id="hclr">Počisti</button></div>
+  <div class="htitle"><span>History</span><button class="clear hide" id="hclr">Clear</button></div>
   <div id="hist"></div>
 </section>
 
@@ -237,14 +237,14 @@ async function authedFetch(url, opts){
   opts = opts || {};
   const t = await token();
   if(!t){
-    showLogin('Ni prijave', 'Seja ni bila shranjena (client). Prijavi se znova.');
+    showLogin('Not signed in', 'Session was not saved (client). Sign in again.');
     throw new Error('no session');
   }
   opts.headers = Object.assign({}, opts.headers || {}, { Authorization: 'Bearer ' + t });
   const res = await fetch(url, opts);
   if(res.status === 401){
     const body = await res.text().catch(() => '');
-    showLogin('Strežnik je zavrnil prijavo (401)', dbg(t, url, body));
+    showLogin('Server rejected sign-in (401)', dbg(t, url, body));
     throw new Error('401');
   }
   return res;
@@ -259,18 +259,18 @@ function dbg(t, url, body){
   const lines = [`fn=${fn}`, `TOKEN projekt: ${mine}`];
   if(d && d.env){
     const srv = String(d.env.url).replace(/^https?:\/\//, '');
-    lines.push(`STREŽNIK url: ${srv}`);
-    lines.push(`STREŽNIK anon: ref=${d.env.anon_ref} len=${d.env.anon_len}${d.env.anon_trimmed ? ' ⚠ PRESLEDEK' : ''}`);
+    lines.push(`SERVER url: ${srv}`);
+    lines.push(`SERVER anon: ref=${d.env.anon_ref} len=${d.env.anon_len}${d.env.anon_trimmed ? ' ⚠ WHITESPACE' : ''}`);
     if(d.why) lines.push(`Supabase: ${d.why}`);
   } else {
-    lines.push(`strežnik: ${body.slice(0, 100)}`);
+    lines.push(`server: ${body.slice(0, 100)}`);
   }
   return lines.join(' · ');
 }
 function showLogin(title, msg){
   document.getElementById('gate').classList.remove('hide');
-  document.getElementById('gt').textContent = title || 'Prevod';
-  document.getElementById('gp').textContent = msg || 'Prijavi se za nadaljevanje.';
+  document.getElementById('gt').textContent = title || 'Translate';
+  document.getElementById('gp').textContent = msg || 'Sign in to continue.';
   document.getElementById('gform').classList.remove('hide');
   document.getElementById('out').classList.add('hide');
 }
@@ -287,33 +287,33 @@ async function submitAuth(e){
   const email = document.getElementById('gmail').value.trim();
   const pass  = document.getElementById('gpass').value;
   const btn   = document.getElementById('gsub');
-  if(!email || pass.length < 6){ gerr('Vpiši e-pošto in geslo (vsaj 6 znakov).'); return; }
+  if(!email || pass.length < 6){ gerr('Enter email and password (at least 6 characters).'); return; }
   btn.disabled = true;
-  btn.textContent = signupMode ? 'Registriram…' : 'Prijavljam…';
+  btn.textContent = signupMode ? 'Signing up…' : 'Signing in…';
   try{
     const { data, error } = signupMode
       ? await sb.auth.signUp({ email, password: pass })
       : await sb.auth.signInWithPassword({ email, password: pass });
     if(error){ gerr(error.message); return; }
     if(data && data.session){ document.getElementById('gerr').classList.add('hide'); enterApp(); }
-    else gnote('Preveri e-pošto in potrdi registracijo, nato se prijavi.');
+    else gnote('Check your email to confirm, then sign in.');
   }catch(_){
-    gerr('Prijava ni uspela. Poskusi znova.');
+    gerr('Sign-in failed. Try again.');
   }finally{
     btn.disabled = false;
-    btn.textContent = signupMode ? 'Registracija' : 'Prijava';
+    btn.textContent = signupMode ? 'Sign up' : 'Sign in';
   }
 }
 function toggleSignup(){
   signupMode = !signupMode;
-  document.getElementById('gsub').textContent = signupMode ? 'Registracija' : 'Prijava';
-  document.getElementById('gtog').textContent = signupMode ? 'Imaš račun? Prijava' : 'Nimaš računa? Registriraj se';
+  document.getElementById('gsub').textContent = signupMode ? 'Sign up' : 'Sign in';
+  document.getElementById('gtog').textContent = signupMode ? 'Have an account? Sign in' : 'No account? Sign up';
   document.getElementById('gpass').autocomplete = signupMode ? 'new-password' : 'current-password';
   document.getElementById('gerr').classList.add('hide');
 }
 async function logout(){
   try{ await sb.auth.signOut(); }catch(_){}
-  showLogin('Prevod', 'Prijavi se za nadaljevanje.');
+  showLogin('Translate', 'Sign in to continue.');
 }
 
 /* ---------- language selectors ---------- */
@@ -477,8 +477,8 @@ async function translate(){
     const d = await res.json();
     if(!res.ok){
       const m = d.error === 'quota'
-        ? 'Dnevna kvota je porabljena. Poskusi jutri.'
-        : ('Napaka: ' + (d.error && d.error.message || d.error || res.status));
+        ? 'Daily quota used up. Try again tomorrow.'
+        : ('Error: ' + (d.error && d.error.message || d.error || res.status));
       hint(m, true); clearOut(); return;
     }
     const raw = (d.content || []).filter(x => x.type === 'text').map(x => x.text).join('');
@@ -488,7 +488,7 @@ async function translate(){
     hint(modeHint());
     speak(out, tgtLang, sp);   // both modes auto-play the result
   }catch(e){
-    if(String(e.message) !== '401'){ hint('Prevod ni uspel. Poskusi znova.', true); clearOut(); }
+    if(String(e.message) !== '401'){ hint('Translation failed. Try again.', true); clearOut(); }
   }finally{
     busy = false; setBusy(false);
   }
@@ -496,14 +496,14 @@ async function translate(){
 function setBusy(on){
   const go = document.getElementById('go');
   go.disabled = on || !document.getElementById('src').value.trim();
-  go.textContent = on ? 'Prevajam…' : 'Prevedi';
+  go.textContent = on ? 'Translating…' : 'Translate';
 }
 function hint(msg, err){
   const h = document.getElementById('hint');
   h.textContent = msg;
   h.classList.toggle('err', !!err);
 }
-function modeHint(){ return mode === 'hitro' ? 'Pridrži za govor' : 'Pridrži ali natipkaj, nato Prevedi'; }
+function modeHint(){ return mode === 'hitro' ? 'Hold to speak' : 'Hold or type, then Translate'; }
 
 /* ---------- recording → Azure STT ---------- */
 let ctx = null, node = null, source = null, stream = null, pcm = [], rate = 48000, recording = false;
@@ -521,9 +521,9 @@ async function startRec(){
     source.connect(node); node.connect(ctx.destination);
     recording = true;
     document.getElementById('mic').classList.add('rec');
-    hint('Poslušam… spusti za konec');
+    hint('Listening… release to stop');
   }catch(e){
-    hint('Dovoli dostop do mikrofona.', true);
+    hint('Allow microphone access.', true);
     recording = false;
   }
 }
@@ -538,26 +538,26 @@ async function stopRec(){
   const flat = new Float32Array(len);
   let off = 0; pcm.forEach(a => { flat.set(a, off); off += a.length; });
   const wav = encodeWAV(flat, rate, 16000);
-  if(wav.byteLength < 2000){ hint('Prekratko. Pridrži dlje in govori.', true); return; }
+  if(wav.byteLength < 2000){ hint('Too short. Hold longer and speak.', true); return; }
 
-  hint('Prepoznavam…');
+  hint('Recognizing…');
   try{
     const res = await authedFetch('/.netlify/functions/azure-stt?lang=' + LANGS[srcLang].stt, {
       method:'POST', headers:{'Content-Type':'audio/wav'}, body: new Blob([wav], { type:'audio/wav' })
     });
     if(!res.ok) throw new Error('STT ' + res.status);
     const { text } = await res.json();
-    if(!text){ hint('Nisem razumel. Poskusi znova.', true); return; }
+    if(!text){ hint("Didn't catch that. Try again.", true); return; }
     const box = document.getElementById('src');
     box.value = text.trim();
     onInput();
     if(mode === 'hitro'){
       translate();                              // quick: straight to translation + autoplay
     } else {
-      hint('Popravi, če je treba, in pritisni Prevedi.');   // precise: wait for confirm
+      hint('Fix if needed, then press Translate.');   // precise: wait for confirm
     }
   }catch(e){
-    if(String(e.message) !== '401') hint('Prepoznava ni uspela.', true);
+    if(String(e.message) !== '401') hint('Recognition failed.', true);
   }
 }
 // Downsample to 16 kHz + 16-bit PCM WAV header (Azure STT's required format).
@@ -596,7 +596,7 @@ function remember(src, out, from, to){
 function renderHist(){
   const list = hist(), wrap = document.getElementById('hist');
   document.getElementById('hclr').classList.toggle('hide', !list.length);
-  if(!list.length){ wrap.innerHTML = '<div class="empty">Prevodi se shranijo tukaj.</div>'; return; }
+  if(!list.length){ wrap.innerHTML = '<div class="empty">Your translations will appear here.</div>'; return; }
   wrap.innerHTML = '';
   list.forEach(h => {
     const from = LANGS[h.from] ? LANGS[h.from].name : h.from;
@@ -686,13 +686,13 @@ function save(){ localStorage.setItem('prevodSrc', srcLang); localStorage.setIte
 
   (async () => {
     if(!window.supabase){
-      document.getElementById('gp').textContent = 'Napaka pri nalaganju. Osveži stran.';
+      document.getElementById('gp').textContent = 'Failed to load. Refresh the page.';
       return;
     }
     sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
     const tk = await token();
     if(tk) enterApp();
-    else showLogin('Prevod', 'Prijavi se za nadaljevanje.');
+    else showLogin('Translate', 'Sign in to continue.');
   })();
 
   if('serviceWorker' in navigator){
