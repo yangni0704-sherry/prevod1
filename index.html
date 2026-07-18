@@ -3,25 +3,45 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#f5f6f8">
+<meta name="theme-color" content="#f5f6f8" id="metatheme">
 <title>Translate</title>
 <link rel="icon" href="favicon-32.png">
 <link rel="manifest" href="manifest.json">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
+<!-- Apply the saved theme before first paint so there's no flash of the default. -->
+<script>try{var t=localStorage.getItem('prevodTheme');if(t)document.documentElement.dataset.theme=t;}catch(e){}</script>
 <style>
-:root{
+/* Four themes. --blue is the theme ACCENT (not always blue — kept named so the
+   many var(--blue*) call sites don't need touching). Values not redeclared in a
+   theme inherit from the :root (Sky) defaults. Per-language accents (--zh etc.)
+   are the output-card identity colors; only Night brightens them for contrast. */
+:root, :root[data-theme="sky"]{
   --bg:#f5f6f8; --surface:#ffffff; --ink:#111417; --muted:#6b7280; --faint:#9aa2ad;
-  --line:#e9ecf1; --line-soft:#f1f3f7;
-  --blue:#2563eb; --blue-deep:#1d4ed8; --blue-soft:#eef4ff;
+  --line:#e9ecf1; --line-soft:#f1f3f7; --chip:#eef1f5;
+  --blue:#2563eb; --blue-deep:#1d4ed8; --blue-soft:#eef4ff; --on-accent:#ffffff;
   --shadow:0 1px 2px rgba(17,24,39,.03), 0 10px 30px rgba(17,24,39,.05);
   --shadow-sm:0 1px 2px rgba(17,24,39,.04), 0 4px 14px rgba(17,24,39,.05);
   --radius:22px;
-  /* per-language accent, used only on the single output card */
-  --zh:#b45309; --zh-bg:#fdf4e7;
-  --en:#7c3aed; --en-bg:#f2edfe;
-  --fr:#db2777; --fr-bg:#fdecf4;
-  --sl:#0e7490; --sl-bg:#e7f4f9;
+  --zh:#b45309; --en:#7c3aed; --fr:#db2777; --sl:#0e7490;
+}
+:root[data-theme="graphite"]{
+  --bg:#f3f4f6; --surface:#ffffff; --ink:#1a1d21; --muted:#666b73; --faint:#9aa0a8;
+  --line:#e6e8ec; --line-soft:#eef0f3; --chip:#ecedf1;
+  --blue:#2b2f36; --blue-deep:#16181c; --blue-soft:#ecedf1; --on-accent:#ffffff;
+}
+:root[data-theme="rose"]{
+  --bg:#faf6f5; --surface:#ffffff; --ink:#2b2325; --muted:#7c6f71; --faint:#ada2a4;
+  --line:#f0e7e7; --line-soft:#f7f0f0; --chip:#f6eded;
+  --blue:#d1567a; --blue-deep:#b8446a; --blue-soft:#fbebf1; --on-accent:#ffffff;
+}
+:root[data-theme="night"]{
+  --bg:#12151a; --surface:#1a1e25; --ink:#e7eaee; --muted:#98a1ad; --faint:#6b7480;
+  --line:#272d36; --line-soft:#20262e; --chip:#252c36;
+  --blue:#4f8cff; --blue-deep:#3d78ea; --blue-soft:#1e2a3f; --on-accent:#ffffff;
+  --shadow:0 1px 2px rgba(0,0,0,.3), 0 10px 30px rgba(0,0,0,.45);
+  --shadow-sm:0 1px 2px rgba(0,0,0,.3), 0 4px 14px rgba(0,0,0,.4);
+  --zh:#e0973f; --en:#a78bfa; --fr:#f472b6; --sl:#38bdf8;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;padding:0}
@@ -36,11 +56,47 @@ button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
 textarea{font:inherit;color:inherit}
 
 /* ---------- header ---------- */
-header{display:flex;align-items:center;justify-content:space-between;padding:24px 2px 18px}
-.brand{display:flex;align-items:center;gap:9px;font-size:17px;font-weight:650;letter-spacing:-.015em}
+body{position:relative}
+header{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:22px 2px 18px}
+.brand{display:flex;align-items:center;gap:9px;font-size:17px;font-weight:650;letter-spacing:-.015em;flex:none}
 .dot{width:9px;height:9px;border-radius:50%;background:var(--blue);flex:none}
-.back{font-size:13px;color:var(--muted);padding:7px 13px;border:1px solid var(--line);border-radius:999px;background:var(--surface);transition:.15s}
-.back:active{background:var(--blue-soft)}
+.hgroup{display:flex;align-items:center;gap:9px}
+
+/* mode toggle in the header — segmented control with a sliding indicator */
+.modeseg{position:relative;display:inline-grid;grid-template-columns:1fr 1fr;
+  background:var(--line-soft);border-radius:13px;padding:3px}
+.modeseg button{position:relative;z-index:1;padding:8px 15px;border-radius:10px;
+  font-size:13px;font-weight:600;color:var(--muted);transition:color .22s;letter-spacing:-.01em}
+.modeseg button[aria-selected="true"]{color:var(--ink)}
+.mode-ind{position:absolute;top:3px;left:3px;bottom:3px;width:calc(50% - 3px);
+  background:var(--surface);border-radius:10px;box-shadow:var(--shadow-sm);
+  transition:transform .32s cubic-bezier(.5,1.35,.5,1)}
+.modeseg[data-sel="natancno"] .mode-ind{transform:translateX(100%)}
+
+.iconbtn{width:40px;height:40px;flex:none;border-radius:50%;background:var(--surface);
+  border:1px solid var(--line);display:grid;place-items:center;box-shadow:var(--shadow-sm);transition:.15s}
+.iconbtn svg{width:19px;height:19px;fill:var(--muted)}
+.iconbtn:active{background:var(--blue-soft)}
+.iconbtn:active svg{fill:var(--blue)}
+
+/* theme + sign-out popover */
+.pop{position:absolute;top:74px;right:0;z-index:40;width:236px;
+  background:var(--surface);border:1px solid var(--line);border-radius:20px;
+  box-shadow:var(--shadow);padding:15px;animation:pop .16s ease}
+@keyframes pop{from{opacity:0;transform:translateY(-6px) scale(.98)}}
+.poptitle{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);margin:0 2px 11px}
+.swatches{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:13px}
+.swatch{display:flex;flex-direction:column;align-items:center;gap:6px;padding:2px 0}
+.sw-circle{width:42px;height:42px;border-radius:50%;background:var(--sw-bg);
+  border:1px solid var(--line);display:grid;place-items:center;transition:.15s}
+.sw-dot{width:17px;height:17px;border-radius:50%;background:var(--sw-ac)}
+.swatch.sel .sw-circle{box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--blue)}
+.swatch:active .sw-circle{transform:scale(.92)}
+.sw-name{font-size:10.5px;color:var(--muted);font-weight:560}
+.swatch.sel .sw-name{color:var(--ink)}
+.popout{width:100%;padding:11px;border-radius:13px;background:var(--line-soft);
+  color:var(--ink);font-size:14px;font-weight:560;text-align:center;transition:.15s}
+.popout:active{background:var(--blue-soft);color:var(--blue)}
 
 /* ---------- language bar (src ⇄ tgt) ---------- */
 .langbar{display:flex;align-items:center;gap:8px;margin-bottom:16px}
@@ -59,13 +115,6 @@ header{display:flex;align-items:center;justify-content:space-between;padding:24p
 .swap:active{background:var(--blue-soft)}
 .swap:active svg{transform:rotate(180deg);fill:var(--blue)}
 
-/* ---------- mode toggle ---------- */
-.modebar{display:inline-flex;background:var(--line-soft);border-radius:12px;padding:3px;
-  margin:0 auto 16px;gap:2px}
-.modebar button{padding:7px 16px;border-radius:9px;font-size:13px;font-weight:560;color:var(--muted);transition:.16s}
-.modebar button[aria-selected="true"]{background:var(--surface);color:var(--ink);box-shadow:var(--shadow-sm)}
-.modewrap{display:flex;justify-content:center}
-
 /* ---------- input card ---------- */
 .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
 .input{padding:18px 18px 14px;margin-bottom:16px}
@@ -79,7 +128,8 @@ header{display:flex;align-items:center;justify-content:space-between;padding:24p
 @keyframes pulse{50%{transform:scale(.92)}}
 .hint{flex:1;font-size:12.5px;color:var(--faint);min-width:0;line-height:1.35}
 .hint.err{color:#e11d48}
-.go{padding:12px 22px;border-radius:999px;background:var(--ink);color:#fff;font-size:14.5px;font-weight:600;flex:none;transition:.15s}
+/* ink bg + surface text stays legible in every theme, incl. Night (light-on-dark inverts cleanly) */
+.go{padding:12px 22px;border-radius:999px;background:var(--ink);color:var(--surface);font-size:14.5px;font-weight:600;flex:none;transition:.15s}
 .go:disabled{opacity:.28}
 .go:not(:disabled):active{transform:scale(.96)}
 .clear{font-size:12.5px;color:var(--faint);padding:6px 6px;flex:none}
@@ -87,8 +137,9 @@ header{display:flex;align-items:center;justify-content:space-between;padding:24p
 /* ---------- single output card ---------- */
 .out{padding:17px 18px;margin-bottom:14px;border-left:3px solid var(--ac,var(--line))}
 .out header{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 0 9px}
+/* language identity carried by the text colour; chip stays theme-neutral */
 .tag{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ac);
-  background:var(--ac-bg);padding:4px 10px;border-radius:7px}
+  background:var(--chip);padding:4px 10px;border-radius:7px}
 .acts{display:flex;gap:2px}
 .icon{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;color:var(--muted);transition:.14s}
 .icon svg{width:18px;height:18px;fill:currentColor}
@@ -150,8 +201,23 @@ header{display:flex;align-items:center;justify-content:space-between;padding:24p
 
 <header>
   <div class="brand"><span class="dot"></span>Translate</div>
-  <button class="back hide" id="out">Sign out</button>
+  <div class="hgroup">
+    <div class="modeseg" id="modebar" data-sel="natancno">
+      <span class="mode-ind"></span>
+      <button data-m="hitro" type="button" aria-selected="false">Quick</button>
+      <button data-m="natancno" type="button" aria-selected="true">Precise</button>
+    </div>
+    <button class="iconbtn" id="cfg" aria-label="Theme and account">
+      <svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 0 0 0 18c.83 0 1.5-.67 1.5-1.5 0-.39-.15-.74-.39-1-.24-.27-.39-.62-.39-1 0-.83.67-1.5 1.5-1.5H16a5 5 0 0 0 5-5c0-4.42-4.03-8-9-8Zm-5.5 9a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Zm3-4a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Zm5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Zm3.5 4a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Z"/></svg>
+    </button>
+  </div>
 </header>
+
+<div class="pop hide" id="pop">
+  <div class="poptitle">Theme</div>
+  <div class="swatches" id="swatches"></div>
+  <button class="popout" id="out" type="button">Sign out</button>
+</div>
 
 <!-- source ⇄ target -->
 <div class="langbar">
@@ -168,14 +234,6 @@ header{display:flex;align-items:center;justify-content:space-between;padding:24p
     <svg class="chev" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>
     <select id="selTgt" aria-label="To language"></select>
   </label>
-</div>
-
-<!-- quick / precise -->
-<div class="modewrap">
-  <div class="modebar" id="modebar">
-    <button data-m="hitro" type="button">Quick</button>
-    <button data-m="natancno" type="button">Precise</button>
-  </div>
 </div>
 
 <div class="card input">
@@ -272,11 +330,9 @@ function showLogin(title, msg){
   document.getElementById('gt').textContent = title || 'Translate';
   document.getElementById('gp').textContent = msg || 'Sign in to continue.';
   document.getElementById('gform').classList.remove('hide');
-  document.getElementById('out').classList.add('hide');
 }
 function enterApp(){
   document.getElementById('gate').classList.add('hide');
-  document.getElementById('out').classList.remove('hide');
 }
 function gerr(msg){ const e = document.getElementById('gerr'); e.textContent = msg; e.className = 'gerr'; }
 function gnote(msg){ const e = document.getElementById('gerr'); e.textContent = msg; e.className = 'gok'; }
@@ -353,12 +409,48 @@ function afterLangChange(){
   save();
 }
 
+/* ---------- themes ---------- */
+// bg/ac here are only for the swatch previews; the real palettes live in CSS.
+const THEMES = {
+  sky:      { name:'Sky',      bg:'#f5f6f8', ac:'#2563eb' },
+  graphite: { name:'Graphite', bg:'#f3f4f6', ac:'#2b2f36' },
+  rose:     { name:'Rose',     bg:'#faf6f5', ac:'#d1567a' },
+  night:    { name:'Night',    bg:'#12151a', ac:'#4f8cff' },
+};
+let theme = 'sky';
+function setTheme(k){
+  if(!THEMES[k]) return;
+  theme = k;
+  document.documentElement.dataset.theme = k;
+  localStorage.setItem('prevodTheme', k);
+  const m = document.getElementById('metatheme');
+  if(m) m.setAttribute('content', THEMES[k].bg);
+  renderThemes();
+}
+function renderThemes(){
+  const wrap = document.getElementById('swatches');
+  wrap.innerHTML = '';
+  Object.keys(THEMES).forEach(k => {
+    const t = THEMES[k];
+    const b = document.createElement('button');
+    b.className = 'swatch' + (k === theme ? ' sel' : '');
+    b.type = 'button';
+    b.innerHTML =
+      `<span class="sw-circle" style="background:${t.bg}"><span class="sw-dot" style="background:${t.ac}"></span></span>` +
+      `<span class="sw-name">${t.name}</span>`;
+    b.onclick = () => setTheme(k);
+    wrap.appendChild(b);
+  });
+}
+function togglePop(){ document.getElementById('pop').classList.toggle('hide'); }
+function closePop(){ document.getElementById('pop').classList.add('hide'); }
+
 /* ---------- output card (single) ---------- */
 function clearOut(){ lastOut = null; document.getElementById('outs').innerHTML = ''; }
 function showSkeleton(){
   const wrap = document.getElementById('outs');
   wrap.innerHTML =
-    `<div class="card out" style="--ac:var(--${tgtLang});--ac-bg:var(--${tgtLang}-bg)">` +
+    `<div class="card out" style="--ac:var(--${tgtLang})">` +
     `<header><span class="tag">${LANGS[tgtLang].name}</span><div class="acts"></div></header>` +
     `<div class="skel"></div><div class="skel s2"></div></div>`;
 }
@@ -369,7 +461,6 @@ function renderOut(text){
   const el = document.createElement('div');
   el.className = 'card out';
   el.style.setProperty('--ac', `var(--${tgtLang})`);
-  el.style.setProperty('--ac-bg', `var(--${tgtLang}-bg)`);
   el.innerHTML = `<header><span class="tag">${LANGS[tgtLang].name}</span><div class="acts"></div></header><div class="txt"></div>`;
   el.querySelector('.txt').textContent = text;
   const acts = el.querySelector('.acts');
@@ -624,6 +715,7 @@ function renderHist(){
 
 /* ---------- mode + input wiring ---------- */
 function renderMode(){
+  document.getElementById('modebar').dataset.sel = mode;   // slides the indicator
   document.querySelectorAll('#modebar button').forEach(b =>
     b.setAttribute('aria-selected', String(b.dataset.m === mode)));
   hint(modeHint());
@@ -650,13 +742,23 @@ function save(){ localStorage.setItem('prevodSrc', srcLang); localStorage.setIte
   if(srcLang === tgtLang) tgtLang = srcLang === 'sl' ? 'zh' : 'sl';
   const m = localStorage.getItem('prevodMode');
   if(m === 'hitro' || m === 'natancno') mode = m;
+  const th = localStorage.getItem('prevodTheme');
+  if(THEMES[th]) theme = th;
 
-  fillLangs(); renderMode(); renderHist();
+  fillLangs(); renderMode(); renderHist(); setTheme(theme);
 
   document.getElementById('selSrc').onchange = e => pickSrc(e.target.value);
   document.getElementById('selTgt').onchange = e => pickTgt(e.target.value);
   document.getElementById('swap').onclick = swapLangs;
   document.querySelectorAll('#modebar button').forEach(b => b.onclick = () => setMode(b.dataset.m));
+
+  // Theme + account popover.
+  document.getElementById('cfg').onclick = togglePop;
+  document.addEventListener('click', e => {
+    const pop = document.getElementById('pop');
+    if(pop.classList.contains('hide')) return;
+    if(!pop.contains(e.target) && !e.target.closest('#cfg')) closePop();
+  });
 
   const box = document.getElementById('src');
   box.addEventListener('input', onInput);
@@ -682,7 +784,7 @@ function save(){ localStorage.setItem('prevodSrc', srcLang); localStorage.setIte
 
   document.getElementById('gform').addEventListener('submit', submitAuth);
   document.getElementById('gtog').onclick = toggleSignup;
-  document.getElementById('out').onclick = logout;
+  document.getElementById('out').onclick = () => { closePop(); logout(); };
 
   (async () => {
     if(!window.supabase){
