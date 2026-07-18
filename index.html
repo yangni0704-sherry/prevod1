@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#2563eb">
+<meta name="theme-color" content="#f5f6f8">
 <title>Prevod</title>
 <link rel="icon" href="favicon-32.png">
 <link rel="manifest" href="manifest.json">
@@ -11,100 +11,118 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <style>
 :root{
-  --bg:#f4f7fc; --surface:#ffffff; --ink:#0d1526; --muted:#5f6b7f; --faint:#8b96a8;
-  --line:#e4ebf5; --line-soft:#eef3fa;
+  --bg:#f5f6f8; --surface:#ffffff; --ink:#111417; --muted:#6b7280; --faint:#9aa2ad;
+  --line:#e9ecf1; --line-soft:#f1f3f7;
   --blue:#2563eb; --blue-deep:#1d4ed8; --blue-soft:#eef4ff;
-  --shadow:0 1px 2px rgba(16,32,64,.04), 0 8px 24px rgba(16,32,64,.06);
-  --radius:18px;
-  --zh:#b45309; --zh-bg:#fdf3e6;
-  --en:#7c3aed; --en-bg:#f1ecfe;
-  --fr:#db2777; --fr-bg:#fdebf4;
-  --sl:#0e7490; --sl-bg:#e6f4f9;
+  --shadow:0 1px 2px rgba(17,24,39,.03), 0 10px 30px rgba(17,24,39,.05);
+  --shadow-sm:0 1px 2px rgba(17,24,39,.04), 0 4px 14px rgba(17,24,39,.05);
+  --radius:22px;
+  /* per-language accent, used only on the single output card */
+  --zh:#b45309; --zh-bg:#fdf4e7;
+  --en:#7c3aed; --en-bg:#f2edfe;
+  --fr:#db2777; --fr-bg:#fdecf4;
+  --sl:#0e7490; --sl-bg:#e7f4f9;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;padding:0}
 body{
   background:var(--bg); color:var(--ink);
   font:15px/1.55 -apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI","PingFang SC","Hiragino Sans GB",system-ui,sans-serif;
-  padding:0 16px calc(40px + env(safe-area-inset-bottom));
-  max-width:640px; margin:0 auto;
+  padding:0 18px calc(48px + env(safe-area-inset-bottom));
+  max-width:560px; margin:0 auto;
   -webkit-font-smoothing:antialiased;
 }
 button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
 textarea{font:inherit;color:inherit}
 
 /* ---------- header ---------- */
-header{display:flex;align-items:center;justify-content:space-between;padding:22px 2px 16px}
-.brand{display:flex;align-items:center;gap:9px;font-size:17px;font-weight:640;letter-spacing:-.01em}
+header{display:flex;align-items:center;justify-content:space-between;padding:24px 2px 18px}
+.brand{display:flex;align-items:center;gap:9px;font-size:17px;font-weight:650;letter-spacing:-.015em}
 .dot{width:9px;height:9px;border-radius:50%;background:var(--blue);flex:none}
-.back{font-size:13px;color:var(--muted);text-decoration:none;padding:6px 11px;border:1px solid var(--line);border-radius:999px;background:var(--surface)}
+.back{font-size:13px;color:var(--muted);padding:7px 13px;border:1px solid var(--line);border-radius:999px;background:var(--surface);transition:.15s}
 .back:active{background:var(--blue-soft)}
 
-/* ---------- segmented source picker ---------- */
-.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;background:var(--surface);
-  border:1px solid var(--line);border-radius:14px;padding:4px;box-shadow:var(--shadow);margin-bottom:8px}
-.seg button{padding:10px 4px;border-radius:10px;font-size:14px;font-weight:560;color:var(--muted);transition:.16s}
-.seg button[aria-selected="true"]{background:var(--blue);color:#fff;box-shadow:0 2px 8px rgba(37,99,235,.28)}
-.seg button:not([aria-selected="true"]):active{background:var(--blue-soft)}
-.route{font-size:12.5px;color:var(--faint);text-align:center;margin:0 0 16px;letter-spacing:.01em}
-.route b{color:var(--muted);font-weight:560}
+/* ---------- language bar (src ⇄ tgt) ---------- */
+.langbar{display:flex;align-items:center;gap:8px;margin-bottom:16px}
+.langpill{position:relative;flex:1;display:flex;align-items:center;justify-content:center;gap:6px;
+  background:var(--surface);border:1px solid var(--line);border-radius:16px;
+  padding:14px 12px;box-shadow:var(--shadow-sm);transition:.15s;min-width:0}
+.langpill:active{background:var(--blue-soft)}
+.langname{font-size:15.5px;font-weight:600;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chev{width:15px;height:15px;fill:var(--faint);flex:none}
+/* the real <select> sits invisibly on top → native picker on tap (iOS wheel) */
+.langpill select{position:absolute;inset:0;width:100%;height:100%;opacity:0;border:0;
+  -webkit-appearance:none;appearance:none;font-size:16px;cursor:pointer}
+.swap{width:40px;height:40px;flex:none;border-radius:50%;background:var(--surface);
+  border:1px solid var(--line);display:grid;place-items:center;box-shadow:var(--shadow-sm);transition:.18s}
+.swap svg{width:19px;height:19px;fill:var(--muted);transition:transform .3s cubic-bezier(.5,1.4,.5,1)}
+.swap:active{background:var(--blue-soft)}
+.swap:active svg{transform:rotate(180deg);fill:var(--blue)}
+
+/* ---------- mode toggle ---------- */
+.modebar{display:inline-flex;background:var(--line-soft);border-radius:12px;padding:3px;
+  margin:0 auto 16px;gap:2px}
+.modebar button{padding:7px 16px;border-radius:9px;font-size:13px;font-weight:560;color:var(--muted);transition:.16s}
+.modebar button[aria-selected="true"]{background:var(--surface);color:var(--ink);box-shadow:var(--shadow-sm)}
+.modewrap{display:flex;justify-content:center}
 
 /* ---------- input card ---------- */
 .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
-.input{padding:16px 16px 12px;margin-bottom:14px}
-#src{width:100%;border:0;outline:0;resize:none;background:none;font-size:17px;line-height:1.5;min-height:52px;padding:0}
+.input{padding:18px 18px 14px;margin-bottom:16px}
+#src{width:100%;border:0;outline:0;resize:none;background:none;font-size:18px;line-height:1.5;min-height:52px;padding:0;letter-spacing:-.01em}
 #src::placeholder{color:var(--faint)}
-.tools{display:flex;align-items:center;gap:10px;padding-top:12px;border-top:1px solid var(--line-soft);margin-top:10px}
-.mic{width:46px;height:46px;border-radius:50%;background:var(--blue);color:#fff;display:grid;place-items:center;
-  flex:none;box-shadow:0 3px 12px rgba(37,99,235,.32);transition:transform .12s,background .12s;touch-action:none}
-.mic svg{width:20px;height:20px;fill:currentColor}
-.mic.rec{background:#e11d48;box-shadow:0 0 0 8px rgba(225,29,72,.14);animation:pulse 1.3s ease-in-out infinite}
-@keyframes pulse{50%{transform:scale(.93)}}
-.hint{flex:1;font-size:12.5px;color:var(--faint);min-width:0}
+.tools{display:flex;align-items:center;gap:12px;padding-top:14px;border-top:1px solid var(--line-soft);margin-top:12px}
+.mic{width:48px;height:48px;border-radius:50%;background:var(--blue);color:#fff;display:grid;place-items:center;
+  flex:none;box-shadow:0 4px 14px rgba(37,99,235,.34);transition:transform .12s,background .12s;touch-action:none}
+.mic svg{width:21px;height:21px;fill:currentColor}
+.mic.rec{background:#e11d48;box-shadow:0 0 0 9px rgba(225,29,72,.13);animation:pulse 1.3s ease-in-out infinite}
+@keyframes pulse{50%{transform:scale(.92)}}
+.hint{flex:1;font-size:12.5px;color:var(--faint);min-width:0;line-height:1.35}
 .hint.err{color:#e11d48}
-.go{padding:11px 20px;border-radius:999px;background:var(--ink);color:#fff;font-size:14px;font-weight:600;flex:none;transition:.15s}
-.go:disabled{opacity:.32}
+.go{padding:12px 22px;border-radius:999px;background:var(--ink);color:#fff;font-size:14.5px;font-weight:600;flex:none;transition:.15s}
+.go:disabled{opacity:.28}
 .go:not(:disabled):active{transform:scale(.96)}
-.clear{font-size:12.5px;color:var(--faint);padding:6px 8px;flex:none}
+.clear{font-size:12.5px;color:var(--faint);padding:6px 6px;flex:none}
 
-/* ---------- results ---------- */
-.out{padding:15px 16px;margin-bottom:12px;border-left:3px solid var(--ac,var(--line))}
-.out header{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 0 8px}
+/* ---------- single output card ---------- */
+.out{padding:17px 18px;margin-bottom:14px;border-left:3px solid var(--ac,var(--line))}
+.out header{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 0 9px}
 .tag{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ac);
-  background:var(--ac-bg);padding:4px 9px;border-radius:6px}
+  background:var(--ac-bg);padding:4px 10px;border-radius:7px}
 .acts{display:flex;gap:2px}
-.icon{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;color:var(--muted);transition:.14s}
-.icon svg{width:17px;height:17px;fill:currentColor}
+.icon{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;color:var(--muted);transition:.14s}
+.icon svg{width:18px;height:18px;fill:currentColor}
 .icon:active{background:var(--blue-soft);color:var(--blue)}
 .icon.on{color:var(--blue)}
-.txt{font-size:19px;line-height:1.5;letter-spacing:-.005em;word-break:break-word}
-.out.wait .txt{color:var(--faint)}
-.skel{height:14px;border-radius:7px;background:linear-gradient(90deg,var(--line-soft),var(--bg),var(--line-soft));
-  background-size:220% 100%;animation:sh 1.1s linear infinite;margin:6px 0}
-.skel.s2{width:62%}
+.txt{font-size:21px;line-height:1.45;letter-spacing:-.01em;word-break:break-word}
+.skel{height:15px;border-radius:8px;background:linear-gradient(90deg,var(--line-soft),var(--bg),var(--line-soft));
+  background-size:220% 100%;animation:sh 1.1s linear infinite;margin:7px 0}
+.skel.s2{width:58%}
 @keyframes sh{to{background-position:-220% 0}}
 
 /* ---------- history ---------- */
-.hsec{margin-top:26px}
-.htitle{display:flex;align-items:center;justify-content:space-between;padding:0 4px 10px}
-.htitle span{font-size:12px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--faint)}
-.hitem{padding:13px 15px;margin-bottom:8px;border-radius:14px;background:var(--surface);
-  border:1px solid var(--line);cursor:pointer;transition:.14s}
+.hsec{margin-top:28px}
+.htitle{display:flex;align-items:center;justify-content:space-between;padding:0 4px 11px}
+.htitle span{font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--faint)}
+.hitem{padding:14px 16px;margin-bottom:9px;border-radius:16px;background:var(--surface);
+  border:1px solid var(--line);cursor:pointer;transition:.14s;box-shadow:var(--shadow-sm)}
 .hitem:active{border-color:var(--blue);background:var(--blue-soft)}
-.hsrc{font-size:14px;font-weight:560;margin-bottom:3px}
-.hout{font-size:13px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.empty{text-align:center;color:var(--faint);font-size:13px;padding:22px 0}
+.hrow{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--faint);margin-bottom:5px;font-weight:600;letter-spacing:.02em}
+.hrow svg{width:11px;height:11px;fill:var(--faint)}
+.hsrc{font-size:15px;font-weight:560;margin-bottom:2px;letter-spacing:-.01em}
+.hout{font-size:14px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.empty{text-align:center;color:var(--faint);font-size:13px;padding:24px 0}
 
 /* ---------- gate / login ---------- */
 #gate{position:fixed;inset:0;background:var(--bg);display:grid;place-items:center;padding:24px;z-index:50}
 .gbox{width:100%;max-width:320px;text-align:center}
-.gbox h1{font-size:19px;margin:0 0 8px;letter-spacing:-.01em}
+.gbox h1{font-size:20px;margin:0 0 8px;letter-spacing:-.02em}
 .gbox p{color:var(--muted);font-size:14px;margin:0 0 20px;word-break:break-word;line-height:1.45}
 #gform{display:flex;flex-direction:column;gap:9px;text-align:left}
-#gform input{padding:13px 15px;border:1px solid var(--line);border-radius:12px;background:var(--surface);
+#gform input{padding:14px 15px;border:1px solid var(--line);border-radius:13px;background:var(--surface);
   font-size:16px;outline:0;transition:border-color .15s}
 #gform input:focus{border-color:var(--blue)}
-.gbtn{padding:13px 26px;border-radius:999px;background:var(--blue);color:#fff;
+.gbtn{padding:14px 26px;border-radius:999px;background:var(--blue);color:#fff;
   font-weight:600;font-size:15px;text-align:center;margin-top:4px}
 .gbtn:disabled{opacity:.5}
 .glink{font-size:13px;color:var(--muted);padding:8px;text-align:center}
@@ -135,13 +153,35 @@ header{display:flex;align-items:center;justify-content:space-between;padding:22p
   <button class="back hide" id="out">Odjava</button>
 </header>
 
-<div class="seg" role="tablist" id="seg"></div>
-<p class="route" id="route"></p>
+<!-- source ⇄ target -->
+<div class="langbar">
+  <label class="langpill" id="pillSrc">
+    <span class="langname" id="nameSrc"></span>
+    <svg class="chev" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>
+    <select id="selSrc" aria-label="Iz jezika"></select>
+  </label>
+  <button class="swap" id="swap" aria-label="Zamenjaj jezika">
+    <svg viewBox="0 0 24 24"><path d="M7 7h11l-3.5-3.5L16 2l6 6-6 6-1.5-1.5L18 9H7V7Zm10 10H6l3.5 3.5L8 22l-6-6 6-6 1.5 1.5L6 15h11v2Z"/></svg>
+  </button>
+  <label class="langpill" id="pillTgt">
+    <span class="langname" id="nameTgt"></span>
+    <svg class="chev" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>
+    <select id="selTgt" aria-label="V jezik"></select>
+  </label>
+</div>
+
+<!-- quick / precise -->
+<div class="modewrap">
+  <div class="modebar" id="modebar">
+    <button data-m="hitro" type="button">Hitro</button>
+    <button data-m="natancno" type="button">Natančno</button>
+  </div>
+</div>
 
 <div class="card input">
   <textarea id="src" rows="1" placeholder="Govori ali natipkaj…" autocomplete="off" spellcheck="false"></textarea>
   <div class="tools">
-    <button class="mic" id="mic" aria-label="Hold to speak">
+    <button class="mic" id="mic" aria-label="Pridrži za govor">
       <svg viewBox="0 0 24 24"><path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3Z"/><path d="M18 12a6 6 0 0 1-12 0H4a8 8 0 0 0 7 7.94V22h2v-2.06A8 8 0 0 0 20 12h-2Z"/></svg>
     </button>
     <div class="hint" id="hint">Pridrži za govor</div>
@@ -160,26 +200,30 @@ header{display:flex;align-items:center;justify-content:space-between;padding:22p
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 /* ============================================================
-   Prevod — speak/type in zh|en|fr, get two translations back.
-   Reuses the Govori backend: Supabase auth, azure-stt, azure-tts,
-   anthropic (module 'tr'). Same origin ⇒ same stored session.
+   Prevod — speak or type in any of 4 languages, translate into
+   one chosen language, hear it spoken.
+   Backend (shared with Govori): Supabase auth, azure-stt,
+   azure-tts, anthropic. Same origin ⇒ same stored session.
    ============================================================ */
 
 const SUPABASE_URL = "https://oexapgbnhavuzpbripqg.supabase.co";
 const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9leGFwZ2JuaGF2dXpwYnJpcHFnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMzNjU0OTMsImV4cCI6MjA5ODk0MTQ5M30.jC_SePTaEgLGAlM8oR7RLKmy5ryDEKUkqlXyvUthZeM";
 
-// Azure voice + STT locale per language. `key` doubles as the CSS accent name.
+// STT locale + TTS voice + English name (for the prompt) per language.
+// The key doubles as the CSS accent variable name (--zh / --en / --fr / --sl).
 const LANGS = {
-  zh: { name:'中文',        stt:'zh-CN', voice:'zh-CN-XiaoxiaoNeural' },
-  en: { name:'English',     stt:'en-US', voice:'en-US-AvaNeural' },
-  fr: { name:'Français',    stt:'fr-FR', voice:'fr-FR-DeniseNeural' },
-  sl: { name:'Slovenščina', stt:'sl-SI', voice:'sl-SI-PetraNeural' },
+  zh: { name:'中文',        en:'Chinese',    stt:'zh-CN', voice:'zh-CN-XiaoxiaoNeural' },
+  en: { name:'English',     en:'English',    stt:'en-US', voice:'en-US-AvaNeural' },
+  fr: { name:'Français',    en:'French',     stt:'fr-FR', voice:'fr-FR-DeniseNeural' },
+  sl: { name:'Slovenščina', en:'Slovene',    stt:'sl-SI', voice:'sl-SI-PetraNeural' },
 };
-// Speaking zh or en gets you the two languages you're learning; speaking fr
-// (the one you'd hear in the wild) gets you back into a language you know.
-const ROUTES = { zh:['sl','fr'], en:['sl','fr'], fr:['zh','en'] };
+const ORDER = ['zh','en','fr','sl'];
 
-let sb = null, srcLang = 'zh', busy = false;
+let sb = null;
+let srcLang = 'zh', tgtLang = 'sl';
+let mode = 'natancno';           // 'hitro' (auto-translate) | 'natancno' (confirm first)
+let busy = false;
+let lastOut = null;              // { text } of the current translation, for autoplay
 
 /* ---------- auth ---------- */
 async function token(){
@@ -187,9 +231,8 @@ async function token(){
   const { data } = await sb.auth.getSession();
   return data && data.session ? data.session.access_token : null;
 }
-// On 401 the old code silently bounced to the login screen, which hid whether
-// the session was missing client-side or the server rejected a real token.
-// Surface the actual cause instead — the two failures need different fixes.
+// On 401, surface WHY (missing session vs server-rejected token) rather than
+// silently bouncing to login — the two failures need different fixes.
 async function authedFetch(url, opts){
   opts = opts || {};
   const t = await token();
@@ -206,8 +249,6 @@ async function authedFetch(url, opts){
   }
   return res;
 }
-// Compact fingerprint of the token + the server's own words, rendered in the UI
-// so it can be read without opening devtools.
 function dbg(t, url, body){
   let mine = '?';
   try{ mine = JSON.parse(atob(t.split('.')[1])).iss || '?'; }catch(_){}
@@ -217,11 +258,9 @@ function dbg(t, url, body){
   try{ d = JSON.parse(body); }catch(_){}
   const lines = [`fn=${fn}`, `TOKEN projekt: ${mine}`];
   if(d && d.env){
-    // The whole point: compare the project the token came from against the one
-    // this function is configured to validate against.
     const srv = String(d.env.url).replace(/^https?:\/\//, '');
     lines.push(`STREŽNIK url: ${srv}`);
-    lines.push(`STREŽNIK anon: ref=${d.env.anon_ref} len=${d.env.anon_len}${d.env.anon_trimmed ? ' ⚠ PRESLEDEK/NEWLINE' : ''}`);
+    lines.push(`STREŽNIK anon: ref=${d.env.anon_ref} len=${d.env.anon_len}${d.env.anon_trimmed ? ' ⚠ PRESLEDEK' : ''}`);
     if(d.why) lines.push(`Supabase: ${d.why}`);
   } else {
     lines.push(`strežnik: ${body.slice(0, 100)}`);
@@ -239,19 +278,9 @@ function enterApp(){
   document.getElementById('gate').classList.add('hide');
   document.getElementById('out').classList.remove('hide');
 }
-function gerr(msg){
-  const e = document.getElementById('gerr');
-  e.textContent = msg;
-  e.className = 'gerr';
-}
-function gnote(msg){
-  const e = document.getElementById('gerr');
-  e.textContent = msg;
-  e.className = 'gok';
-}
+function gerr(msg){ const e = document.getElementById('gerr'); e.textContent = msg; e.className = 'gerr'; }
+function gnote(msg){ const e = document.getElementById('gerr'); e.textContent = msg; e.className = 'gok'; }
 
-// Sign-in / sign-up against the same Supabase project Govori uses, so an
-// existing Govori account works here with no extra setup.
 let signupMode = false;
 async function submitAuth(e){
   e.preventDefault();
@@ -266,7 +295,6 @@ async function submitAuth(e){
       ? await sb.auth.signUp({ email, password: pass })
       : await sb.auth.signInWithPassword({ email, password: pass });
     if(error){ gerr(error.message); return; }
-    // With e-mail confirmation on, signUp returns a user but no session yet.
     if(data && data.session){ document.getElementById('gerr').classList.add('hide'); enterApp(); }
     else gnote('Preveri e-pošto in potrdi registracijo, nato se prijavi.');
   }catch(_){
@@ -276,7 +304,7 @@ async function submitAuth(e){
     btn.textContent = signupMode ? 'Registracija' : 'Prijava';
   }
 }
-function toggleMode(){
+function toggleSignup(){
   signupMode = !signupMode;
   document.getElementById('gsub').textContent = signupMode ? 'Registracija' : 'Prijava';
   document.getElementById('gtog').textContent = signupMode ? 'Imaš račun? Prijava' : 'Nimaš računa? Registriraj se';
@@ -288,49 +316,68 @@ async function logout(){
   showLogin('Prevod', 'Prijavi se za nadaljevanje.');
 }
 
-/* ---------- source picker ---------- */
-function renderSeg(){
-  const seg = document.getElementById('seg');
-  seg.innerHTML = '';
-  ['zh','en','fr'].forEach(k => {
-    const b = document.createElement('button');
-    b.textContent = LANGS[k].name;
-    b.setAttribute('role','tab');
-    b.setAttribute('aria-selected', String(k === srcLang));
-    b.onclick = () => { srcLang = k; renderSeg(); renderRoute(); resetOuts(); save(); };
-    seg.appendChild(b);
-  });
+/* ---------- language selectors ---------- */
+function fillLangs(){
+  const mk = (sel, cur) => {
+    sel.innerHTML = '';
+    ORDER.forEach(k => {
+      const o = document.createElement('option');
+      o.value = k; o.textContent = LANGS[k].name; o.selected = (k === cur);
+      sel.appendChild(o);
+    });
+  };
+  mk(document.getElementById('selSrc'), srcLang);
+  mk(document.getElementById('selTgt'), tgtLang);
+  document.getElementById('nameSrc').textContent = LANGS[srcLang].name;
+  document.getElementById('nameTgt').textContent = LANGS[tgtLang].name;
 }
-function renderRoute(){
-  const [a,b] = ROUTES[srcLang];
-  document.getElementById('route').innerHTML =
-    `Govorim <b>${LANGS[srcLang].name}</b> → <b>${LANGS[a].name}</b> · <b>${LANGS[b].name}</b>`;
+function pickSrc(k){
+  if(k === tgtLang) tgtLang = srcLang;   // collision → swap so the two are never equal
+  srcLang = k;
+  afterLangChange();
+}
+function pickTgt(k){
+  if(k === srcLang) srcLang = tgtLang;
+  tgtLang = k;
+  afterLangChange();
+}
+function swapLangs(){
+  const s = srcLang; srcLang = tgtLang; tgtLang = s;
+  afterLangChange();
+}
+// Language change invalidates the shown translation (target may differ) but
+// keeps whatever the user typed, so they can re-translate the same text.
+function afterLangChange(){
+  fillLangs();
+  clearOut();
+  save();
 }
 
-/* ---------- output cards ---------- */
-function resetOuts(){ renderOuts(null); }
-function renderOuts(data){
+/* ---------- output card (single) ---------- */
+function clearOut(){ lastOut = null; document.getElementById('outs').innerHTML = ''; }
+function showSkeleton(){
+  const wrap = document.getElementById('outs');
+  wrap.innerHTML =
+    `<div class="card out" style="--ac:var(--${tgtLang});--ac-bg:var(--${tgtLang}-bg)">` +
+    `<header><span class="tag">${LANGS[tgtLang].name}</span><div class="acts"></div></header>` +
+    `<div class="skel"></div><div class="skel s2"></div></div>`;
+}
+function renderOut(text){
+  lastOut = { text, lang: tgtLang };
   const wrap = document.getElementById('outs');
   wrap.innerHTML = '';
-  if(!data) return;
-  ROUTES[srcLang].forEach((k, i) => {
-    const text = data[i];
-    const el = document.createElement('div');
-    el.className = 'card out' + (text ? '' : ' wait');
-    el.style.setProperty('--ac', `var(--${k})`);
-    el.style.setProperty('--ac-bg', `var(--${k}-bg)`);
-    el.innerHTML =
-      `<header><span class="tag">${LANGS[k].name}</span><div class="acts"></div></header>` +
-      (text ? `<div class="txt"></div>` : `<div class="skel"></div><div class="skel s2"></div>`);
-    if(text){
-      el.querySelector('.txt').textContent = text;
-      const acts = el.querySelector('.acts');
-      const sp = iconBtn('speak', () => speak(text, k, sp));
-      acts.appendChild(sp);
-      acts.appendChild(iconBtn('copy', function(){ copy(text, this); }));
-    }
-    wrap.appendChild(el);
-  });
+  const el = document.createElement('div');
+  el.className = 'card out';
+  el.style.setProperty('--ac', `var(--${tgtLang})`);
+  el.style.setProperty('--ac-bg', `var(--${tgtLang}-bg)`);
+  el.innerHTML = `<header><span class="tag">${LANGS[tgtLang].name}</span><div class="acts"></div></header><div class="txt"></div>`;
+  el.querySelector('.txt').textContent = text;
+  const acts = el.querySelector('.acts');
+  const sp = iconBtn('speak', () => speak(text, tgtLang, sp));
+  acts.appendChild(sp);
+  acts.appendChild(iconBtn('copy', function(){ copy(text, this); }));
+  wrap.appendChild(el);
+  return sp;   // returned so the caller can auto-play through it
 }
 const ICONS = {
   speak:'<path d="M4 9v6h4l5 5V4L8 9H4Zm12.5 3a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4Zm-2.5-8.7v2.1a7 7 0 0 1 0 13.2v2.1a9 9 0 0 0 0-17.4Z"/>',
@@ -345,25 +392,40 @@ function iconBtn(kind, fn){
   return b;
 }
 
-/* ---------- Azure TTS ---------- */
-let audio = null;
+/* ---------- Azure TTS + autoplay ---------- */
+// One reusable <audio> element, unlocked on the first user gesture, so
+// programmatic playback after a translation isn't blocked on iOS Safari.
+let audioEl = null, lastAudioUrl = null, audioUnlocked = false;
+function unlockAudio(){
+  if(audioUnlocked) return;
+  audioUnlocked = true;
+  try{
+    audioEl = new Audio();
+    const sil = new Blob([encodeWAV(new Float32Array(1600), 16000, 16000)], { type:'audio/wav' });
+    audioEl.src = URL.createObjectURL(sil);
+    const p = audioEl.play();
+    if(p && p.then) p.then(() => audioEl.pause()).catch(() => {});
+  }catch(_){}
+}
 async function speak(text, lang, btn){
-  if(audio){ audio.pause(); audio = null; }
+  const el = audioEl || (audioEl = new Audio());
+  try{ el.pause(); }catch(_){}
+  if(lastAudioUrl){ URL.revokeObjectURL(lastAudioUrl); lastAudioUrl = null; }
   document.querySelectorAll('.icon.on').forEach(b => b.classList.remove('on'));
-  btn.classList.add('on');
-  const v = LANGS[lang].voice;
+  if(btn) btn.classList.add('on');
   const ssml = `<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="${LANGS[lang].stt}">`
-             + `<voice name="${v}">${esc(text)}</voice></speak>`;
+             + `<voice name="${LANGS[lang].voice}">${esc(text)}</voice></speak>`;
   try{
     const res = await authedFetch('/.netlify/functions/azure-tts', {
       method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ ssml })
     });
     if(!res.ok) throw new Error('TTS ' + res.status);
     const blob = await res.blob();
-    audio = new Audio(URL.createObjectURL(blob));
-    audio.onended = () => btn.classList.remove('on');
-    audio.play();
-  }catch(e){ btn.classList.remove('on'); }
+    lastAudioUrl = URL.createObjectURL(blob);
+    el.src = lastAudioUrl;
+    el.onended = () => { if(btn) btn.classList.remove('on'); };
+    await el.play();
+  }catch(e){ if(btn) btn.classList.remove('on'); }
 }
 function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
@@ -380,17 +442,15 @@ function copy(text, btn){
 async function translate(){
   const text = document.getElementById('src').value.trim();
   if(!text || busy) return;
-  busy = true;
-  setBusy(true);
-  renderOuts(['','']);   // skeletons
+  busy = true; setBusy(true);
+  showSkeleton();
 
-  const [a, b] = ROUTES[srcLang];
   const sys =
-    `You translate short spoken utterances. Produce t1 in ${LANGS[a].name} and t2 in ${LANGS[b].name}.\n` +
+    `Translate the user's utterance into ${LANGS[tgtLang].en}.\n` +
     `- Translate into natural, idiomatic spoken language — what a native actually says, not a word-for-word rendering.\n` +
     `- Preserve the register and tone of the source: casual stays casual, polite stays polite.\n` +
-    `- The input comes from speech recognition and may contain small errors; translate the obvious intent.\n` +
-    `- Translate only. No explanations, notes, alternatives, or quotation marks around the output.`;
+    `- The input may come from speech recognition and contain small errors; translate the obvious intent.\n` +
+    `- Output only the translation. No explanations, notes, alternatives, or quotation marks.`;
 
   try{
     const res = await authedFetch('/.netlify/functions/anthropic', {
@@ -405,8 +465,8 @@ async function translate(){
             type:'json_schema',
             schema:{
               type:'object',
-              properties:{ t1:{type:'string'}, t2:{type:'string'} },
-              required:['t1','t2'],
+              properties:{ t:{type:'string'} },
+              required:['t'],
               additionalProperties:false
             }
           }
@@ -419,15 +479,16 @@ async function translate(){
       const m = d.error === 'quota'
         ? 'Dnevna kvota je porabljena. Poskusi jutri.'
         : ('Napaka: ' + (d.error && d.error.message || d.error || res.status));
-      hint(m, true); resetOuts(); return;
+      hint(m, true); clearOut(); return;
     }
     const raw = (d.content || []).filter(x => x.type === 'text').map(x => x.text).join('');
-    const out = JSON.parse(raw);
-    renderOuts([out.t1, out.t2]);
-    remember(text, out.t1, out.t2);
-    hint('Pridrži za govor');
+    const out = JSON.parse(raw).t;
+    const sp = renderOut(out);
+    remember(text, out, srcLang, tgtLang);
+    hint(modeHint());
+    speak(out, tgtLang, sp);   // both modes auto-play the result
   }catch(e){
-    if(String(e.message) !== '401'){ hint('Prevod ni uspel. Poskusi znova.', true); resetOuts(); }
+    if(String(e.message) !== '401'){ hint('Prevod ni uspel. Poskusi znova.', true); clearOut(); }
   }finally{
     busy = false; setBusy(false);
   }
@@ -442,6 +503,7 @@ function hint(msg, err){
   h.textContent = msg;
   h.classList.toggle('err', !!err);
 }
+function modeHint(){ return mode === 'hitro' ? 'Pridrži za govor' : 'Pridrži ali natipkaj, nato Prevedi'; }
 
 /* ---------- recording → Azure STT ---------- */
 let ctx = null, node = null, source = null, stream = null, pcm = [], rate = 48000, recording = false;
@@ -489,13 +551,16 @@ async function stopRec(){
     const box = document.getElementById('src');
     box.value = text.trim();
     onInput();
-    hint('Popravi, če je treba, in prevedi.');
-    translate();
+    if(mode === 'hitro'){
+      translate();                              // quick: straight to translation + autoplay
+    } else {
+      hint('Popravi, če je treba, in pritisni Prevedi.');   // precise: wait for confirm
+    }
   }catch(e){
     if(String(e.message) !== '401') hint('Prepoznava ni uspela.', true);
   }
 }
-// Downsample to 16 kHz and wrap in a 16-bit PCM WAV header (what Azure STT wants).
+// Downsample to 16 kHz + 16-bit PCM WAV header (Azure STT's required format).
 function encodeWAV(samples, inRate, outRate){
   if(outRate !== inRate){
     const ratio = inRate / outRate;
@@ -522,9 +587,9 @@ function encodeWAV(samples, inRate, outRate){
 
 /* ---------- history (local only) ---------- */
 function hist(){ try{ return JSON.parse(localStorage.getItem('prevodHist') || '[]'); }catch(_){ return []; } }
-function remember(src, t1, t2){
-  const list = hist().filter(h => !(h.src === src && h.lang === srcLang));
-  list.unshift({ src, t1, t2, lang: srcLang, at: Date.now() });
+function remember(src, out, from, to){
+  const list = hist().filter(h => !(h.src === src && h.from === from && h.to === to));
+  list.unshift({ src, out, from, to, at: Date.now() });
   localStorage.setItem('prevodHist', JSON.stringify(list.slice(0, 40)));
   renderHist();
 }
@@ -534,22 +599,36 @@ function renderHist(){
   if(!list.length){ wrap.innerHTML = '<div class="empty">Prevodi se shranijo tukaj.</div>'; return; }
   wrap.innerHTML = '';
   list.forEach(h => {
+    const from = LANGS[h.from] ? LANGS[h.from].name : h.from;
+    const to = LANGS[h.to] ? LANGS[h.to].name : h.to;
     const el = document.createElement('div');
     el.className = 'hitem';
-    el.innerHTML = '<div class="hsrc"></div><div class="hout"></div>';
+    el.innerHTML =
+      `<div class="hrow"><span></span><svg viewBox="0 0 24 24"><path d="M4 11h12.2l-3.6-3.6L14 6l6 6-6 6-1.4-1.4 3.6-3.6H4z"/></svg><span></span></div>` +
+      `<div class="hsrc"></div><div class="hout"></div>`;
+    const spans = el.querySelectorAll('.hrow span');
+    spans[0].textContent = from; spans[1].textContent = to;
     el.querySelector('.hsrc').textContent = h.src;
-    el.querySelector('.hout').textContent = h.t1 + ' · ' + h.t2;
+    el.querySelector('.hout').textContent = h.out;
     el.onclick = () => {
-      srcLang = h.lang; renderSeg(); renderRoute(); save();
+      srcLang = LANGS[h.from] ? h.from : srcLang;
+      tgtLang = LANGS[h.to] ? h.to : tgtLang;
+      fillLangs(); save();
       document.getElementById('src').value = h.src; onInput();
-      renderOuts([h.t1, h.t2]);
+      renderOut(h.out);
       window.scrollTo({ top:0, behavior:'smooth' });
     };
     wrap.appendChild(el);
   });
 }
 
-/* ---------- input wiring ---------- */
+/* ---------- mode + input wiring ---------- */
+function renderMode(){
+  document.querySelectorAll('#modebar button').forEach(b =>
+    b.setAttribute('aria-selected', String(b.dataset.m === mode)));
+  hint(modeHint());
+}
+function setMode(m){ mode = m; localStorage.setItem('prevodMode', m); renderMode(); }
 function onInput(){
   const box = document.getElementById('src');
   box.style.height = 'auto';
@@ -558,17 +637,26 @@ function onInput(){
   document.getElementById('go').disabled = busy || !has;
   document.getElementById('clr').classList.toggle('hide', !has);
 }
-function save(){ localStorage.setItem('prevodLang', srcLang); }
+function save(){ localStorage.setItem('prevodSrc', srcLang); localStorage.setItem('prevodTgt', tgtLang); }
 
 /* ============================================================
-   init — everything above is defined by now (see CLAUDE.md §8.3:
-   no top-level calls before their definitions).
+   init — every function above is defined by now. Per project rule:
+   no one-time calls before their definitions (avoids TDZ crash).
    ============================================================ */
 (function init(){
-  const saved = localStorage.getItem('prevodLang');
-  if(saved && ROUTES[saved]) srcLang = saved;
+  const s = localStorage.getItem('prevodSrc'), t = localStorage.getItem('prevodTgt');
+  if(LANGS[s]) srcLang = s;
+  if(LANGS[t]) tgtLang = t;
+  if(srcLang === tgtLang) tgtLang = srcLang === 'sl' ? 'zh' : 'sl';
+  const m = localStorage.getItem('prevodMode');
+  if(m === 'hitro' || m === 'natancno') mode = m;
 
-  renderSeg(); renderRoute(); renderHist(); resetOuts();
+  fillLangs(); renderMode(); renderHist();
+
+  document.getElementById('selSrc').onchange = e => pickSrc(e.target.value);
+  document.getElementById('selTgt').onchange = e => pickTgt(e.target.value);
+  document.getElementById('swap').onclick = swapLangs;
+  document.querySelectorAll('#modebar button').forEach(b => b.onclick = () => setMode(b.dataset.m));
 
   const box = document.getElementById('src');
   box.addEventListener('input', onInput);
@@ -576,10 +664,14 @@ function save(){ localStorage.setItem('prevodLang', srcLang); }
     if((e.metaKey || e.ctrlKey) && e.key === 'Enter'){ e.preventDefault(); translate(); }
   });
   document.getElementById('go').onclick = translate;
-  document.getElementById('clr').onclick = () => { box.value = ''; onInput(); resetOuts(); box.focus(); };
+  document.getElementById('clr').onclick = () => { box.value = ''; onInput(); clearOut(); box.focus(); };
   document.getElementById('hclr').onclick = () => { localStorage.removeItem('prevodHist'); renderHist(); };
 
-  // Hold to speak — same gesture as the Del2 / Osnove mics.
+  // Unlock audio on the first gesture anywhere, so autoplay works on iOS.
+  const unlockOnce = () => { unlockAudio(); document.removeEventListener('pointerdown', unlockOnce); };
+  document.addEventListener('pointerdown', unlockOnce);
+
+  // Hold to speak.
   const mic = document.getElementById('mic');
   const down = e => { e.preventDefault(); startRec(); };
   const up   = e => { e.preventDefault(); stopRec(); };
@@ -589,7 +681,7 @@ function save(){ localStorage.setItem('prevodLang', srcLang); }
   mic.addEventListener('pointerleave', e => { if(recording) up(e); });
 
   document.getElementById('gform').addEventListener('submit', submitAuth);
-  document.getElementById('gtog').onclick = toggleMode;
+  document.getElementById('gtog').onclick = toggleSignup;
   document.getElementById('out').onclick = logout;
 
   (async () => {
@@ -598,8 +690,8 @@ function save(){ localStorage.setItem('prevodLang', srcLang); }
       return;
     }
     sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
-    const t = await token();
-    if(t) enterApp();
+    const tk = await token();
+    if(tk) enterApp();
     else showLogin('Prevod', 'Prijavi se za nadaljevanje.');
   })();
 
